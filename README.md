@@ -32,18 +32,3 @@ Este projeto foi desenvolvido com o objetivo de facilitar a assinatura digital d
 -Acesse seu painel para visualizar e baixar seus arquivos assinados
 -Pronto! Seu documento está validado digitalmente ✨📑
 
-
-📈 O que Aprendi com o Projeto
-✅ Organização de projetos Flask com múltiplas rotas
-✅ Autenticação de usuários com segurança
-✅ Manipulação de arquivos PDF em Python
-✅ Separação de lógica backend e templates frontend
-✅ Criação de layouts base reutilizáveis com Jinja2
-
-
-🛠️ Em Desenvolvimento
-🔄 Melhorias na usabilidade do painel
-🔒 Assinatura com certificado digital (futuro)
-📨 Envio automático por e-mail
-📊 Área de métricas do usuário
-📱 Aplicativo mobile (talvez no futuro!)
