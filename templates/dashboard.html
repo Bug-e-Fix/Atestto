@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Dashboard</h2>
+    <p>Bem-vindo, {{ session.get('user') }}</p>
+    <a href="{{ url_for('assinatura.documentos') }}">Documentos</a>
+{% endblock %}

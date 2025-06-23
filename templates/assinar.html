@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Enviar documento para assinar</h2>
+<form method="post" enctype="multipart/form-data">
+    <input type="file" name="documento" required>
+    <button type="submit">Enviar</button>
+</form>
+{% endblock %}

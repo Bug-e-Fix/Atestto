@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Atestto Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="login-section">
+            <div class="logo" style="position: absolute; top: 30px; left: 40px;">
+                <img src="{{ url_for('static', filename='img/Logo.png') }}" alt="Atestto logo" style="height: 40px;">
+            </div>
+
+            <div class="form-wrapper">
+                <h1>Login</h1>
+                <p>Faça o login</p>
+
+                {% if erro %}
+                    <p style="color: red;">{{ erro }}</p>
+                {% endif %}
+
+                <form method="POST">
+                    <input type="email" name="email" placeholder="Email address" required>
+                    <input type="password" name="senha" placeholder="Password" required>
+                    <div class="forgot">
+                        <a href="#">Esqueceu a senha?</a>
+                    </div>
+                    <button type="submit">Log in</button>
+                </form>
+
+                <p class="register-link">
+                    Não tem uma conta? <a href="{{ url_for('auth.register') }}">Cadastre-se</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
