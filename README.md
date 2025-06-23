@@ -1,20 +1,44 @@
-✨ Atestto – Plataforma de Assinatura Digital
-O Atestto é um projeto pessoal que desenvolvi com o objetivo de criar uma plataforma simples e funcional para assinatura digital de documentos. Ele surgiu como uma oportunidade de aplicar meus conhecimentos em desenvolvimento web com Python, além de explorar conceitos de autenticação, manipulação de arquivos PDF e organização de um sistema com múltiplas rotas.
+# 🖋️ Atestto – Assinatura Digital com Simplicidade e Segurança
 
-🔒 Assine documentos com praticidade e segurança.
+Bem-vindo(a) ao **Atestto**!  
+Este projeto foi desenvolvido com o objetivo de facilitar a assinatura digital de documentos de forma prática, segura e acessível para qualquer pessoa. Ideal para quem precisa validar arquivos PDF rapidamente, sem complicações e com foco na experiência do usuário. 😄🔐
 
-👩‍💻 Sobre o Projeto
-✅ Login e cadastro de usuários
-✅ Upload de arquivos PDF
-✅ Assinatura digital de documentos
-✅ Painel com documentos enviados e assinados
-✅ Design responsivo e inspirado em plataformas reais, como o DocuSign
-Esse projeto também faz parte do meu processo de aprendizado em desenvolvimento backend com Flask e boas práticas de organização de código.
+## ⚙️ Funcionalidades
 
-🛠️ Tecnologias e Ferramentas
-Python + Flask (backend e rotas)
-HTML5 + CSS3 + Jinja (frontend)
-Pymysql (banco de dados local)
-PyPDF2 (para lidar com PDFs)
-Werkzeug / Flask-Login (autenticação de usuários)
+✨ Upload de arquivos PDF para assinatura  
+🖊️ Assinatura digital com autenticação de usuário  
+📂 Painel com histórico de documentos enviados e assinados  
+📥 Download de documentos assinados  
+🔐 Login e cadastro com segurança  
+📱 Design responsivo (ótimo para celular e desktop)
 
+
+## 🧠 Tecnologias Utilizadas
+
+- **Python + Flask** – Backend e gerenciamento de rotas  
+- **HTML5 + CSS3 + Jinja2** – Frontend e templates  
+- **SQLite** – Banco de dados local e leve  
+- **PyPDF2** – Manipulação de arquivos PDF  
+- **Flask-Login** – Sistema de autenticação  
+- **Werkzeug** – Utilitários para segurança e senhas
+
+🚦 Como Usar
+-Crie sua conta ou faça login
+-Envie um arquivo PDF para assinar
+-Clique em "Assinar Documento"
+-Acesse seu painel para visualizar e baixar seus arquivos assinados
+-Pronto! Seu documento está validado digitalmente ✨📑
+
+📈 O que Aprendi com o Projeto
+✅ Organização de projetos Flask com múltiplas rotas
+✅ Autenticação de usuários com segurança
+✅ Manipulação de arquivos PDF em Python
+✅ Separação de lógica backend e templates frontend
+✅ Criação de layouts base reutilizáveis com Jinja2
+
+🛠️ Em Desenvolvimento
+🔄 Melhorias na usabilidade do painel
+🔒 Assinatura com certificado digital (futuro)
+📨 Envio automático por e-mail
+📊 Área de métricas do usuário
+📱 Aplicativo mobile (talvez no futuro!)
