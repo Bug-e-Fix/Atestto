@@ -1,25 +1,17 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from flask_login import login_user, logout_user, login_required, current_user
-from app.models.user import User  # Importa o modelo User
+from flask_login import login_user, logout_user, login_required
+from app.models.user import get_user_by_email, create_user
 
 auth_bp = Blueprint('auth', __name__)
 
-@auth_bp.route('/')
-def index():
-    return redirect(url_for('auth.login'))
-
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('dashboard.dashboard'))
-    
     erro = None
     if request.method == 'POST':
         email = request.form.get('email')
         senha = request.form.get('senha')
-        
-        user = User.query.filter_by(email=email).first()
-        
+
+        user = get_user_by_email(email)
         if user and user.check_password(senha):
             login_user(user)
             return redirect(url_for('dashboard.dashboard'))
@@ -37,20 +29,28 @@ def logout():
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
+        name = request.form.get('name')
         email = request.form.get('email')
-        senha = request.form.get('senha')
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
 
-        # Verificar se usuário já existe
-        if User.query.filter_by(email=email).first():
-            flash('Usuário já existe')
-            return redirect(url_for('auth.register'))
+        if not all([name, email, password, confirm_password]):
+            flash('Preencha todos os campos', 'error')
+            return render_template('register.html')
 
-        novo_user = User(email=email)
-        novo_user.set_password(senha)
-        from app.models.user import db
-        db.session.add(novo_user)
-        db.session.commit()
-        flash('Cadastro realizado com sucesso!')
-        return redirect(url_for('auth.login'))
+        if password != confirm_password:
+            flash('As senhas não conferem', 'error')
+            return render_template('register.html')
+
+        if get_user_by_email(email):
+            flash('Email já cadastrado', 'error')
+            return render_template('register.html')
+
+        user = create_user(name, email, password)
+        if user:
+            flash('Cadastro realizado com sucesso!', 'success')
+            return redirect(url_for('auth.login'))
+        else:
+            flash('Erro ao cadastrar usuário', 'error')
 
     return render_template('register.html')
