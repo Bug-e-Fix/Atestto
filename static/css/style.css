@@ -3,7 +3,7 @@ body {
     font-family: 'Segoe UI', sans-serif;
     margin: 0;
     padding: 0;
-    background: linear-gradient(-45deg, #e0f7fa, #ede7f6, #f3f4f6, #e8eaf6);
+    background: linear-gradient(-45deg, #e0e9fa, #e7edf6, #f3f4f6, #f6efe8);
     background-size: 400% 400%;
     animation: gradientAnimation 15s ease infinite;
 }
@@ -36,7 +36,7 @@ body {
     justify-content: center;
     background-color: rgba(255, 255, 255, 0.6);
     backdrop-filter: blur(10px);
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 30px #0000001a;
     border-radius: 12px;
     margin: auto;
     max-width: 400px;
@@ -51,7 +51,7 @@ body {
     align-items: center;
     font-weight: bold;
     font-size: 24px;
-    color: #1a237e;
+    color: #032b58;
     z-index: 10;
 }
 
@@ -67,7 +67,7 @@ body {
 
 .form-wrapper h1 {
     font-size: 36px;
-    color: #1a237e;
+    color: #032b58;
     margin-bottom: 10px;
 }
 
@@ -80,7 +80,7 @@ form input {
     width: 100%;
     padding: 14px;
     margin-bottom: 15px;
-    border: 1px solid #ccc;
+    border: 1px solid #ffffff;
     border-radius: 8px;
     font-size: 15px;
 }
@@ -88,8 +88,8 @@ form input {
 form button {
     width: 100%;
     padding: 14px;
-    background-color: #331da3;
-    color: white;
+    background-color: #0852a7;
+    color: rgb(255, 255, 255);
     border: none;
     border-radius: 8px;
     font-size: 16px;
@@ -98,7 +98,7 @@ form button {
 }
 
 form button:hover {
-    background-color: #2901f0;
+    background-color: #032b58;
 }
 
 /* Links */
@@ -109,10 +109,13 @@ form button:hover {
 }
 
 .login-link a, .register-link a {
-    color: #2901f0;
+    color: #f38303;
     text-decoration: none;
 }
 
 .login-link a:hover, .register-link a:hover {
     text-decoration: underline;
 }
+
+
+

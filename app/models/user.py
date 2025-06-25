@@ -1,16 +1,9 @@
+
 import pymysql
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
-from config import Config
+from app.services.database import get_connection
 
-def get_connection():
-    return pymysql.connect(
-        host='localhost',
-        user='Giovanna',
-        password='Jackzera456',
-        db='SQLAtestto',
-        cursorclass=pymysql.cursors.DictCursor
-    )
 
 class User(UserMixin):
     def __init__(self, id, name, email, password_hash):
@@ -25,7 +18,6 @@ class User(UserMixin):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-# Buscar usuário por email
 def get_user_by_email(email):
     conn = get_connection()
     try:
@@ -39,7 +31,6 @@ def get_user_by_email(email):
     finally:
         conn.close()
 
-# Buscar usuário por id
 def get_user_by_id(user_id):
     conn = get_connection()
     try:
@@ -53,7 +44,6 @@ def get_user_by_id(user_id):
     finally:
         conn.close()
 
-# Criar novo usuário
 def create_user(name, email, password):
     user = User(None, name, email, None)
     user.set_password(password)
@@ -65,9 +55,9 @@ def create_user(name, email, password):
             cursor.execute(sql, (user.name, user.email, user.password_hash))
         conn.commit()
         user.id = cursor.lastrowid
-        return user  # sucesso retorna o objeto User
+        return user
     except pymysql.err.IntegrityError:
-        # email já existe (unique constraint)
-        return None  # falha retorna None
+
+        return None
     finally:
         conn.close()

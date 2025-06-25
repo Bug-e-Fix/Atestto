@@ -1,0 +1,50 @@
+.recent-documents {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.recent-documents h2 {
+    margin-bottom: 20px;
+    color: #2b4f81;
+    font-size: 24px;
+    border-bottom: 2px solid #2b4f81;
+    padding-bottom: 8px;
+}
+
+.document-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #d1d9e6;
+    background-color: #f9fbfd;
+    border-radius: 8px;
+    padding: 15px 20px;
+    margin-bottom: 10px;
+    transition: box-shadow 0.3s ease;
+}
+
+.document-card:hover {
+    box-shadow: 0 0 10px rgba(43, 79, 129, 0.1);
+}
+
+.status {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+.status.assinado {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status.pendente {
+    background-color: #fff3cd;
+    color: #856404;
+}

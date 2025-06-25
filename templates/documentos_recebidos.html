@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}Documentos Recebidos - Atestto{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/documentos_recebidos.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="recent-documents">
+    <h2>Documentos Recebidos</h2>
+    {% if documentos %}
+        {% for doc in documentos %}
+            <div class="document-card">
+                <div>
+                    <strong>{{ doc.nome }}</strong>
+                    <p>{{ doc.data_upload }}</p>
+                </div>
+                <span class="status {{ 'assinado' if doc.status == 'Assinado' else 'pendente' }}">{{ doc.status }}</span>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>Você ainda não recebeu nenhum documento.</p>
+    {% endif %}
+</section>
+{% endblock %}

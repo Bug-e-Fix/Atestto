@@ -1,7 +1,48 @@
-{% extends 'base.html' %}
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Atestto</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body>
+    <!-- Navbar horizontal -->
+    <nav class="navbar">
+        <div class="logo">
+            <img src="{{ url_for('static', filename='img/Logo.png') }}" alt="Logo Atestto">
+        </div>
+       <ul class="nav-links">
+        <li><a href="{{ url_for('dashboard.documentos_enviados') }}">Documentos Enviados</a></li>
+        <li><a href="{{ url_for('dashboard.documentos_recebidos') }}">Documentos Recebidos</a></li>
+        <li><a href="{{ url_for('dashboard.minha_assinatura') }}">Minha Assinatura</a></li>
 
-{% block content %}
-    <h2>Dashboard</h2>
-    <p>Bem-vindo, {{ session.get('user') }}</p>
-    <a href="{{ url_for('assinatura.documentos') }}">Documentos</a>
-{% endblock %}
+</ul>
+
+    </nav>
+
+    <!-- Saudação -->
+    <div class="greeting">
+        <h2>Olá, {{ current_user.name }}</h2>
+    </div>
+
+    <!-- Área de Upload -->
+    <div class="drop-area">
+        <p>Arraste e solte aqui o documento para assinar</p>
+        <input type="file" name="document" id="fileUpload">
+    </div>
+
+    <!-- Documentos Recentes -->
+    <section class="recent-documents">
+        <h2>Documentos Recentes</h2>
+        {% for doc in documentos %}
+            <div class="document-card">
+                <div>
+                    <strong>{{ doc.nome }}</strong>
+                    <p>{{ doc.data_upload }}</p>
+                </div>
+                <span class="status {{ 'assinado' if doc.status == 'Assinado' else 'pendente' }}">{{ doc.status }}</span>
+            </div>
+        {% endfor %}
+    </section>
+</body>
+</html>
