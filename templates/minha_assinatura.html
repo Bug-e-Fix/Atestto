@@ -3,7 +3,7 @@
 {% block title %}Minha Assinatura - Atestto{% endblock %}
 
 {% block head %}
-
+<!-- Fontes Google -->
 <link href="https://fonts.googleapis.com/css2?family=Roboto&family=Pacifico&family=Dancing+Script&family=Satisfy&family=Great+Vibes&family=Kaushan+Script&family=Indie+Flower&family=Shadows+Into+Light&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/minha_assinatura.css') }}">
 {% endblock %}
@@ -12,75 +12,76 @@
 <section class="assinatura-section">
     <h2>Configurar Assinatura</h2>
 
-        
+    <!-- Pop-up de sucesso -->
     {% with messages = get_flashed_messages() %}
         {% if messages %}
             <script>
-                {% for msg in messages %}
-                    alert("{{ msg }}");
-                {% endfor %}
+                window.onload = function() {
+                    {% for msg in messages %}
+                        alert("{{ msg }}");
+                    {% endfor %}
+                }
             </script>
         {% endif %}
     {% endwith %}
 
-    
-    <form method="POST">
-        
+    <form method="POST" id="assinaturaForm">
         <div class="assinatura-bloco">
             <label for="nome">Digite seu nome completo:</label>
             <input type="text" id="nome" name="nome" placeholder="Ex: Giovanna Fernandes"
-                   oninput="atualizarAssinatura()" required
+                   oninput="onInputChange()" required
                    value="{{ dados.nome or '' }}">
         </div>
 
-        
         <div class="assinatura-bloco">
             <label for="fonte">Escolha uma fonte:</label>
-            <select id="fonte" name="fonte" onchange="atualizarAssinatura()">
-                {% set fontes = [
-                    'Roboto', 'Pacifico', 'Dancing Script', 'Satisfy',
-                    'Great Vibes', 'Kaushan Script', 'Indie Flower', 'Shadows Into Light'
-                ] %}
+            <select id="fonte" name="fonte" onchange="onInputChange()">
+                {% set fontes = ['Roboto','Pacifico','Dancing Script','Satisfy','Great Vibes','Kaushan Script','Indie Flower','Shadows Into Light'] %}
                 {% for f in fontes %}
                     <option value="{{ f }}" {% if dados.fonte == f %}selected{% endif %}>{{ f }}</option>
                 {% endfor %}
             </select>
         </div>
 
-        
         <div class="assinatura-bloco">
             <label>Visualização da Assinatura:</label>
-            <div id="assinatura-visual" class="assinatura-preview"
-                 style="font-family: {{ dados.fonte or 'Roboto' }}">
+            <div id="assinatura-visual" class="assinatura-preview" style="font-family: {{ dados.fonte or 'Roboto' }}">
                 {{ dados.nome or 'Sua assinatura' }}
             </div>
         </div>
 
-        
         <div class="assinatura-bloco">
             <label>Rubrica (iniciais):</label>
-            <div id="rubrica-preview" class="rubrica-preview"
-                 style="font-family: {{ dados.fonte or 'Roboto' }}">
+            <div id="rubrica-preview" class="rubrica-preview" style="font-family: {{ dados.fonte or 'Roboto' }}">
                 {{ dados.rubrica or '' }}
             </div>
         </div>
 
-        
         <div class="assinatura-bloco">
             <label for="cpf">CPF:</label>
             <input type="text" id="cpf" name="cpf" placeholder="Digite seu CPF" required
-                   value="{{ dados.cpf or '' }}">
+                   oninput="onInputChange()" value="{{ dados.cpf or '' }}">
             <p class="info">Usaremos o CPF para recuperação de senha.</p>
         </div>
 
-        
         <div class="assinatura-bloco">
-            <button type="submit" class="btn-salvar">Salvar Assinatura</button>
+            <button type="submit" id="btnSalvar" class="btn-salvar" disabled>Salvar Assinatura</button>
         </div>
     </form>
+
+    <!-- Botão de sair -->
+    <div style="text-align: right; margin-top: 40px;">
+        <a href="{{ url_for('auth.logout') }}" class="back-button-big">Sair da conta</a>
+    </div>
 </section>
 
 <script>
+    let initial = {
+        nome: "{{ dados.nome or '' }}",
+        fonte: "{{ dados.fonte or 'Roboto' }}",
+        cpf: "{{ dados.cpf or '' }}"
+    };
+
     function atualizarAssinatura() {
         const nome = document.getElementById('nome').value.trim();
         const fonte = document.getElementById('fonte').value;
@@ -100,7 +101,15 @@
         rubricaEl.style.fontFamily = fonte;
     }
 
-    
+    function onInputChange() {
+        atualizarAssinatura();
+        const nome = document.getElementById('nome').value.trim();
+        const fonte = document.getElementById('fonte').value;
+        const cpf = document.getElementById('cpf').value.trim();
+        const changed = nome !== initial.nome || fonte !== initial.fonte || cpf !== initial.cpf;
+        document.getElementById('btnSalvar').disabled = !changed;
+    }
+
     window.onload = atualizarAssinatura;
 </script>
 {% endblock %}
