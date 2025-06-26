@@ -3,6 +3,8 @@
 {% block title %}Minha Assinatura - Atestto{% endblock %}
 
 {% block head %}
+<!-- Fontes Google -->
+<link href="https://fonts.googleapis.com/css2?family=Roboto&family=Pacifico&family=Dancing+Script&family=Satisfy&family=Great+Vibes&family=Kaushan+Script&family=Indie+Flower&family=Shadows+Into+Light&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/minha_assinatura.css') }}">
 {% endblock %}
 
@@ -10,69 +12,95 @@
 <section class="assinatura-section">
     <h2>Configurar Assinatura</h2>
 
-    <!-- Escolha de fonte -->
-    <div class="assinatura-bloco">
-        <label for="fonte">Escolha uma fonte para sua assinatura:</label>
-        <select id="fonte" name="fonte">
-            <option value="Roboto">Roboto</option>
-            <option value="Pacifico">Pacifico</option>
-            <option value="Dancing Script">Dancing Script</option>
-        </select>
-    </div>
+        
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <script>
+                {% for msg in messages %}
+                    alert("{{ msg }}");
+                {% endfor %}
+            </script>
+        {% endif %}
+    {% endwith %}
 
-    <!-- Estilos de rubrica -->
-    <div class="assinatura-bloco">
-        <label>Escolha uma rubrica:</label>
-        <div class="rubrica-opcoes">
-            <div class="rubrica" style="font-family: Roboto">GF</div>
-            <div class="rubrica" style="font-family: Pacifico">GF</div>
-            <div class="rubrica" style="font-family: 'Dancing Script'">GF</div>
+    
+    <form method="POST">
+        
+        <div class="assinatura-bloco">
+            <label for="nome">Digite seu nome completo:</label>
+            <input type="text" id="nome" name="nome" placeholder="Ex: Giovanna Fernandes"
+                   oninput="atualizarAssinatura()" required
+                   value="{{ dados.nome or '' }}">
         </div>
-    </div>
 
-    <!-- Campo de assinatura desenhada -->
-    <div class="assinatura-bloco">
-        <label>Desenhe sua assinatura:</label>
-        <canvas id="canvas-assinatura" width="500" height="150"></canvas>
-        <div class="botoes-canvas">
-            <button onclick="limparCanvas()">Limpar</button>
+        
+        <div class="assinatura-bloco">
+            <label for="fonte">Escolha uma fonte:</label>
+            <select id="fonte" name="fonte" onchange="atualizarAssinatura()">
+                {% set fontes = [
+                    'Roboto', 'Pacifico', 'Dancing Script', 'Satisfy',
+                    'Great Vibes', 'Kaushan Script', 'Indie Flower', 'Shadows Into Light'
+                ] %}
+                {% for f in fontes %}
+                    <option value="{{ f }}" {% if dados.fonte == f %}selected{% endif %}>{{ f }}</option>
+                {% endfor %}
+            </select>
         </div>
-    </div>
 
-    <!-- Informações adicionais -->
-    <div class="assinatura-bloco">
-        <label for="cpf">CPF:</label>
-        <input type="text" id="cpf" name="cpf" placeholder="Digite seu CPF">
-        <p class="info">O CPF será utilizado como verificador em caso de esquecimento de senha.</p>
-    </div>
+        
+        <div class="assinatura-bloco">
+            <label>Visualização da Assinatura:</label>
+            <div id="assinatura-visual" class="assinatura-preview"
+                 style="font-family: {{ dados.fonte or 'Roboto' }}">
+                {{ dados.nome or 'Sua assinatura' }}
+            </div>
+        </div>
 
-    <div class="assinatura-bloco">
-        <button class="btn-salvar">Salvar Assinatura</button>
-    </div>
+        
+        <div class="assinatura-bloco">
+            <label>Rubrica (iniciais):</label>
+            <div id="rubrica-preview" class="rubrica-preview"
+                 style="font-family: {{ dados.fonte or 'Roboto' }}">
+                {{ dados.rubrica or '' }}
+            </div>
+        </div>
+
+        
+        <div class="assinatura-bloco">
+            <label for="cpf">CPF:</label>
+            <input type="text" id="cpf" name="cpf" placeholder="Digite seu CPF" required
+                   value="{{ dados.cpf or '' }}">
+            <p class="info">Usaremos o CPF para recuperação de senha.</p>
+        </div>
+
+        
+        <div class="assinatura-bloco">
+            <button type="submit" class="btn-salvar">Salvar Assinatura</button>
+        </div>
+    </form>
 </section>
 
 <script>
-    const canvas = document.getElementById('canvas-assinatura');
-    const ctx = canvas.getContext('2d');
-    let desenhando = false;
+    function atualizarAssinatura() {
+        const nome = document.getElementById('nome').value.trim();
+        const fonte = document.getElementById('fonte').value;
+        const assinaturaEl = document.getElementById('assinatura-visual');
+        const rubricaEl = document.getElementById('rubrica-preview');
 
-    canvas.addEventListener('mousedown', () => { desenhando = true; });
-    canvas.addEventListener('mouseup', () => { desenhando = false; ctx.beginPath(); });
-    canvas.addEventListener('mousemove', desenhar);
+        assinaturaEl.textContent = nome || 'Sua assinatura';
+        assinaturaEl.style.fontFamily = fonte;
 
-    function desenhar(e) {
-        if (!desenhando) return;
-        ctx.lineWidth = 2;
-        ctx.lineCap = 'round';
-        ctx.strokeStyle = '#000';
-        ctx.lineTo(e.offsetX, e.offsetY);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(e.offsetX, e.offsetY);
+        const partes = nome.split(' ');
+        if (partes.length >= 2) {
+            const iniciais = partes[0][0] + partes[partes.length - 1][0];
+            rubricaEl.textContent = iniciais.toUpperCase();
+        } else {
+            rubricaEl.textContent = '';
+        }
+        rubricaEl.style.fontFamily = fonte;
     }
 
-    function limparCanvas() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
+    
+    window.onload = atualizarAssinatura;
 </script>
 {% endblock %}

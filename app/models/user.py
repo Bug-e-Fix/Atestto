@@ -5,6 +5,7 @@ from flask_login import UserMixin
 from app.services.database import get_connection
 
 
+
 class User(UserMixin):
     def __init__(self, id, name, email, password_hash):
         self.id = id
@@ -59,5 +60,24 @@ def create_user(name, email, password):
     except pymysql.err.IntegrityError:
 
         return None
+    finally:
+        conn.close()
+
+
+def salvar_assinatura_usuario(user_id, nome, fonte, rubrica, cpf):
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            sql = """
+                INSERT INTO assinatura_config (usuario_id, nome, fonte, rubrica, cpf)
+                VALUES (%s, %s, %s, %s, %s)
+                ON DUPLICATE KEY UPDATE 
+                    nome = VALUES(nome),
+                    fonte = VALUES(fonte),
+                    rubrica = VALUES(rubrica),
+                    cpf = VALUES(cpf)
+            """
+            cursor.execute(sql, (user_id, nome, fonte, rubrica, cpf))
+        conn.commit()
     finally:
         conn.close()
