@@ -21,7 +21,7 @@ def create_app():
     app.config['CONVERTED_FOLDER'] = 'converted'
     app.config['SIGNED_FOLDER'] = 'signed'
 
-    # Registra blueprints
+    
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(assinatura_bp)

@@ -10,7 +10,7 @@ try:
         user="root",
         password="Jackzera456",
         database="atestto",
-        connection_timeout=5  # timeout de 5 segundos
+        connection_timeout=5  
     )
     print("Conectado com sucesso!")
     conexao.close()

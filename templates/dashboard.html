@@ -25,13 +25,13 @@
         <h2>Olá, {{ current_user.name }}</h2>
     </div>
 
-    <!-- Área de Upload -->
+    
     <div class="drop-area">
         <p>Arraste e solte aqui o documento para assinar</p>
         <input type="file" name="document" id="fileUpload">
     </div>
 
-    <!-- Documentos Recentes -->
+    
     <section class="recent-documents">
         <h2>Documentos Recentes</h2>
         {% for doc in documentos %}

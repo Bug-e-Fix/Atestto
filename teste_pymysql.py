@@ -1,13 +1,13 @@
 import pymysql
 
-# Configurações do banco
+
 host = 'localhost'
 user = 'Giovanna'
 password = 'Jackzera456'
 database = 'SQLAtestto'
 
 try:
-    # Conecta ao banco
+    
     connection = pymysql.connect(
         host=host,
         user=user,
@@ -19,7 +19,7 @@ try:
     print("Conexão com o banco feita com sucesso!")
 
     with connection.cursor() as cursor:
-        # Exemplo: pega todas as tabelas do banco
+        
         cursor.execute("SHOW TABLES;")
         tables = cursor.fetchall()
         print("Tabelas no banco:")

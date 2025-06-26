@@ -2,10 +2,10 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required
 from app.models.user import get_user_by_email, create_user
 
-# Blueprint SEM prefixo de URL
+
 auth_bp = Blueprint('auth', __name__)
 
-# Página de Login
+
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     erro = None
@@ -22,14 +22,14 @@ def login():
 
     return render_template('login.html', erro=erro)
 
-# Página de Logout
+
 @auth_bp.route('/logout')
 @login_required
 def logout():
     logout_user()
     return redirect(url_for('auth.login'))
 
-# Página de Registro
+
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':

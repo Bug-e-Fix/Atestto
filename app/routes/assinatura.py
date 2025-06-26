@@ -9,5 +9,5 @@ def documentos():
 
 @assinatura_bp.route('/assinar', methods=['GET', 'POST'])
 def assinar():
-    # upload de documento
+   
     pass
