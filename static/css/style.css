@@ -88,7 +88,7 @@ form input {
 form button {
     width: 100%;
     padding: 14px;
-    background-color: #0852a7;
+    background-color: #0755ad;
     color: rgb(255, 255, 255);
     border: none;
     border-radius: 8px;
@@ -98,7 +98,7 @@ form button {
 }
 
 form button:hover {
-    background-color: #032b58;
+    background-color: #043a79;
 }
 
 /* Links */
@@ -109,7 +109,7 @@ form button:hover {
 }
 
 .login-link a, .register-link a {
-    color: #f38303;
+    color: #f30303;
     text-decoration: none;
 }
 

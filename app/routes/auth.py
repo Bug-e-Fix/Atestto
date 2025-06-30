@@ -2,9 +2,16 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required
 from app.models.user import get_user_by_email, create_user
 
-
 auth_bp = Blueprint('auth', __name__)
 
+@auth_bp.route('/esqueci-senha', methods=['GET', 'POST'])
+def esqueci_senha():
+    if request.method == 'POST':
+        cpf_ou_email = request.form.get('cpf')
+        # TODO: implementar lógica real de recuperação de senha (ex: envio de email)
+        flash('Se o CPF ou e-mail estiver cadastrado, você receberá um link para redefinir a senha.')
+        return redirect(url_for('auth.esqueci_senha'))
+    return render_template('esqueci_senha.html')
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -22,13 +29,11 @@ def login():
 
     return render_template('login.html', erro=erro)
 
-
 @auth_bp.route('/logout')
 @login_required
 def logout():
     logout_user()
     return redirect(url_for('auth.login'))
-
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():

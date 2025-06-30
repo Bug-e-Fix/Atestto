@@ -25,9 +25,9 @@
         {% endif %}
     {% endwith %}
 
-    <form method="POST" id="assinaturaForm">
+    <form method="POST" id="assinaturaForm" onsubmit="return validarFormulario()">
         <div class="assinatura-bloco">
-            <label for="nome">Digite seu nome completo:</label>
+            <label for="nome">Digite seu nome completo como está no crachá:</label>
             <input type="text" id="nome" name="nome" placeholder="Ex: Giovanna Fernandes"
                    oninput="onInputChange()" required
                    value="{{ dados.nome or '' }}">
@@ -108,6 +108,16 @@
         const cpf = document.getElementById('cpf').value.trim();
         const changed = nome !== initial.nome || fonte !== initial.fonte || cpf !== initial.cpf;
         document.getElementById('btnSalvar').disabled = !changed;
+    }
+
+    function validarFormulario() {
+        const nome = document.getElementById('nome').value.trim();
+        const partes = nome.split(' ');
+        if (partes.length < 2) {
+            alert("Por favor, digite seu nome completo (nome e sobrenome), conforme o crachá.");
+            return false;
+        }
+        return confirm("Deseja realmente salvar sua assinatura?");
     }
 
     window.onload = atualizarAssinatura;
