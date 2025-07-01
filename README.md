@@ -17,9 +17,24 @@ Este projeto foi desenvolvido com o objetivo de facilitar a assinatura digital d
 
 ## 🧠 Tecnologias Utilizadas
 
-- **Python + Flask** – Backend e gerenciamento de rotas  
-- **HTML5 + CSS3 + Jinja2** – Frontend e templates  
-- **SQLite** – Banco de dados local e leve  
-- **PyPDF2** – Manipulação de arquivos PDF  
-- **Flask-Login** – Sistema de autenticação  
-- **Werkzeug** – Utilitários para segurança e senhas
+bcrypt==4.3.0
+beautifulsoup4==4.13.4
+blinker==1.9.0
+certifi==2025.6.15
+charset-normalizer==3.4.2
+click==8.2.1
+colorama==0.4.6
+Flask==3.1.1
+Flask-Login==0.6.3
+idna==3.10
+itsdangerous==2.2.0
+Jinja2==3.1.6
+MarkupSafe==3.0.2
+PyMySQL==1.1.0
+PyPDF2==3.0.1
+python-dotenv==1.1.1
+requests==2.32.4
+soupsieve==2.7
+typing_extensions==4.14.0
+urllib3==2.5.0
+Werkzeug==3.1.3
