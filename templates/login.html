@@ -1,32 +1,40 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>Atestto Login</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
 </head>
 <body>
     <div class="container">
         <div class="login-section">
             <div class="logo" style="position: absolute; top: 30px; left: 40px;">
-                <img src="{{ url_for('static', filename='img/Logo.png') }}" alt="Atestto logo" style="height: 40px;">
+                <img src="{{ url_for('static', filename='img/Logo.png') }}" alt="Atestto logo" style="height: 40px;" />
             </div>
 
             <div class="form-wrapper">
                 <h1>Login</h1>
                 <p>Faça o login</p>
 
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                  {% if messages %}
+                    {% for category, message in messages %}
+                      <p class="flash-message {{ category }}">{{ message }}</p>
+                    {% endfor %}
+                  {% endif %}
+                {% endwith %}
+
                 {% if erro %}
                     <p style="color: red;">{{ erro }}</p>
                 {% endif %}
 
-                <form method="POST">
-                    <input type="email" name="email" placeholder="Email address" required>
-                    <input type="password" name="senha" placeholder="Password" required>
+                <form method="POST" action="{{ url_for('auth.login') }}">
+                    <input type="email" name="email" placeholder="Email" required />
+                    <input type="password" name="senha" placeholder="Senha" required />
                     <div class="forgot">
                         <a href="{{ url_for('auth.esqueci_senha') }}">Esqueceu a senha?</a>
                     </div>
-                    <button type="submit">Log in</button>
+                    <button type="submit">Entrar</button>
                 </form>
 
                 <p class="register-link">

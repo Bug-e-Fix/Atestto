@@ -3,7 +3,7 @@
 {% block title %}Minha Assinatura - Atestto{% endblock %}
 
 {% block head %}
-<!-- Fontes Google -->
+
 <link href="https://fonts.googleapis.com/css2?family=Roboto&family=Pacifico&family=Dancing+Script&family=Satisfy&family=Great+Vibes&family=Kaushan+Script&family=Indie+Flower&family=Shadows+Into+Light&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/minha_assinatura.css') }}">
 {% endblock %}
@@ -12,7 +12,7 @@
 <section class="assinatura-section">
     <h2>Configurar Assinatura</h2>
 
-    <!-- Pop-up de sucesso -->
+    
     {% with messages = get_flashed_messages() %}
         {% if messages %}
             <script>
@@ -69,7 +69,7 @@
         </div>
     </form>
 
-    <!-- Botão de sair -->
+    
     <div style="text-align: right; margin-top: 40px;">
         <a href="{{ url_for('auth.logout') }}" class="back-button-big">Sair da conta</a>
     </div>

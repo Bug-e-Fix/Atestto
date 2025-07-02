@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirmação de E-mail - Atestto</title>
+</head>
+<body>
+    <h2>Olá, {{ user.name }}!</h2>
+    <p>Obrigado por se cadastrar na <strong>Atestto</strong>.</p>
+    <p>Para ativar sua conta, clique no botão abaixo:</p>
+    <p>
+        <a href="{{ confirm_url }}" style="display: inline-block; background-color: #007BFF; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+            Confirmar E-mail
+        </a>
+    </p>
+    <p>Se você não fez este cadastro, ignore este e-mail.</p>
+    <p>Atenciosamente,<br>Equipe Atestto</p>
+</body>
+</html>
