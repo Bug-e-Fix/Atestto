@@ -12,7 +12,6 @@
 <section class="assinatura-section">
     <h2>Configurar Assinatura</h2>
 
-    
     {% with messages = get_flashed_messages() %}
         {% if messages %}
             <script>
@@ -59,8 +58,8 @@
 
         <div class="assinatura-bloco">
             <label for="cpf">CPF:</label>
-            <input type="text" id="cpf" name="cpf" placeholder="Digite seu CPF" required
-                   oninput="onInputChange()" value="{{ dados.cpf or '' }}">
+            <input type="text" id="cpf" name="cpf" placeholder="Digite seu CPF (somente números)" required
+                   oninput="onInputChange()" value="{{ dados.cpf or '' }}" maxlength="11" />
             <p class="info">Usaremos o CPF para recuperação de senha.</p>
         </div>
 
@@ -69,7 +68,6 @@
         </div>
     </form>
 
-    
     <div style="text-align: right; margin-top: 40px;">
         <a href="{{ url_for('auth.logout') }}" class="back-button-big">Sair da conta</a>
     </div>
@@ -119,6 +117,24 @@
         }
         return confirm("Deseja realmente salvar sua assinatura?");
     }
+
+    // Bloquear entrada de caracteres não numéricos no CPF e alertar
+    const cpfInput = document.getElementById('cpf');
+    cpfInput.addEventListener('keypress', function(event) {
+        const char = String.fromCharCode(event.which);
+        if (!/[0-9]/.test(char)) {
+            event.preventDefault();
+            alert('Apenas números são permitidos no CPF!');
+        }
+    });
+
+    cpfInput.addEventListener('paste', function(event) {
+        const paste = (event.clipboardData || window.clipboardData).getData('text');
+        if (/[^0-9]/.test(paste)) {
+            event.preventDefault();
+            alert('Apenas números são permitidos no CPF!');
+        }
+    });
 
     window.onload = atualizarAssinatura;
 </script>

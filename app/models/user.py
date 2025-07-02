@@ -39,6 +39,26 @@ def get_user_by_email(email):
     finally:
         conn.close()
 
+def get_user_by_cpf(cpf):
+    conn = get_connection()
+    try:
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            sql = "SELECT * FROM usuario WHERE cpf = %s"
+            cursor.execute(sql, (cpf,))
+            row = cursor.fetchone()
+            if row:
+                return User(
+                    row['id'],
+                    row['name'],
+                    row['email'],
+                    row['password_hash'],
+                    row.get('email_confirmed', False),
+                    row.get('created_at')
+                )
+            return None
+    finally:
+        conn.close()
+
 def get_user_by_id(user_id):
     conn = get_connection()
     try:
@@ -89,6 +109,17 @@ def update_user_confirmation(user_id):
     finally:
         conn.close()
 
+def update_user_password(user_id, new_password):
+    password_hash = generate_password_hash(new_password)
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            sql = "UPDATE usuario SET password_hash = %s WHERE id = %s"
+            cursor.execute(sql, (password_hash, user_id))
+        conn.commit()
+    finally:
+        conn.close()
+
 def salvar_assinatura_usuario(user_id, nome, fonte, rubrica, cpf):
     conn = get_connection()
     try:
@@ -106,7 +137,6 @@ def salvar_assinatura_usuario(user_id, nome, fonte, rubrica, cpf):
         conn.commit()
     finally:
         conn.close()
-
 
 def apagar_usuarios_nao_confirmados(expiracao_horas=24):
     limite = datetime.utcnow() - timedelta(hours=expiracao_horas)

@@ -2,31 +2,56 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_user, logout_user, login_required
 from flask_mail import Message
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
-from app.models.user import get_user_by_email, create_user, update_user_confirmation
+from app.models.user import (
+    get_user_by_email,
+    get_user_by_cpf,
+    create_user,
+    update_user_confirmation,
+    update_user_password
+)
 from app.extensions import mail
+import re
 
 auth_bp = Blueprint('auth', __name__)
 
+# --------- TOKEN HELPERS ---------
 def generate_confirmation_token(email):
     serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
     return serializer.dumps(email, salt='email-confirmation')
 
-def confirm_token(token, expiration=3600*24):  # 24 horas por padrão
+def confirm_token(token, expiration=3600*24):
     serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
     return serializer.loads(token, salt='email-confirmation', max_age=expiration)
 
+def generate_reset_token(email):
+    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    return serializer.dumps(email, salt='password-reset')
+
+def confirm_reset_token(token, expiration=3600*24):
+    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    return serializer.loads(token, salt='password-reset', max_age=expiration)
+
+# --------- EMAIL HELPERS ---------
 def send_confirmation_email(user):
     token = generate_confirmation_token(user.email)
     confirm_url = url_for('auth.confirm_email', token=token, _external=True)
     html = render_template('emails/confirm_email.html', user=user, confirm_url=confirm_url)
-
-    msg = Message(
-        subject='Confirme seu e-mail - Atestto',
-        recipients=[user.email],
-        html=html
-    )
+    msg = Message('Confirme seu e-mail - Atestto', recipients=[user.email], html=html)
     mail.send(msg)
 
+def send_reset_email(user):
+    token = generate_reset_token(user.email)
+    reset_url = url_for('auth.reset_password', token=token, _external=True)
+    html = render_template('emails/reset_password.html', user=user, reset_url=reset_url)
+    msg = Message('Redefina sua senha - Atestto', recipients=[user.email], html=html)
+    mail.send(msg)
+
+# --------- UTIL ---------
+def normalize_cpf(cpf):
+    # Remove tudo que não for número
+    return re.sub(r'\D', '', cpf or '')
+
+# --------- ROUTES ---------
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -108,8 +133,55 @@ def logout():
 @auth_bp.route('/esqueci-senha', methods=['GET', 'POST'])
 def esqueci_senha():
     if request.method == 'POST':
-        cpf_ou_email = request.form.get('cpf')
-        # TODO: implementar recuperação de senha
-        flash('Se o CPF ou e-mail estiver cadastrado, você receberá um link para redefinir a senha.')
-        return redirect(url_for('auth.esqueci_senha'))
+        cpf_ou_email = request.form.get('cpf')  # ou email
+        cpf_ou_email_normalizado = normalize_cpf(cpf_ou_email)
+
+        # Primeiro tenta buscar pelo email
+        user = get_user_by_email(cpf_ou_email)
+        # Se não encontrar pelo email, tenta CPF (normalizado)
+        if not user and cpf_ou_email_normalizado:
+            user = get_user_by_cpf(cpf_ou_email_normalizado)
+
+        # Mensagem genérica mesmo se não encontrar o usuário
+        flash('Se o CPF ou e-mail estiver cadastrado, você receberá um link para redefinir a senha.', 'info')
+
+        if user:
+            send_reset_email(user)
+
+        return redirect(url_for('auth.login'))
+
     return render_template('esqueci_senha.html')
+
+@auth_bp.route('/reset-senha/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    try:
+        email = confirm_reset_token(token)
+    except SignatureExpired:
+        flash('O link para redefinir a senha expirou. Solicite um novo.', 'danger')
+        return redirect(url_for('auth.esqueci_senha'))
+    except BadSignature:
+        flash('Link inválido para redefinir a senha.', 'danger')
+        return redirect(url_for('auth.esqueci_senha'))
+
+    user = get_user_by_email(email)
+    if not user:
+        flash('Usuário não encontrado.', 'warning')
+        return redirect(url_for('auth.esqueci_senha'))
+
+    if request.method == 'POST':
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+
+        if not password or not confirm_password:
+            flash('Preencha todos os campos.', 'error')
+            return render_template('reset_password.html', token=token)
+
+        if password != confirm_password:
+            flash('As senhas não conferem.', 'error')
+            return render_template('reset_password.html', token=token)
+
+        update_user_password(user.id, password)
+        flash('Senha redefinida com sucesso! Faça login com a nova senha.', 'success')
+        return redirect(url_for('auth.login'))
+
+    return render_template('reset_password.html', token=token)
