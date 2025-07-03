@@ -1,20 +1,16 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_user, logout_user, login_required
-from flask_mail import Message
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 from app.models.user import (
     get_user_by_email,
-    get_user_by_cpf,
     create_user,
     update_user_confirmation,
     update_user_password
 )
-from app.extensions import mail
-import re
+from app.services.email_service import enviar_email  # Função de envio de email atualizada
 
 auth_bp = Blueprint('auth', __name__)
 
-# --------- TOKEN HELPERS ---------
 def generate_confirmation_token(email):
     serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
     return serializer.dumps(email, salt='email-confirmation')
@@ -31,27 +27,26 @@ def confirm_reset_token(token, expiration=3600*24):
     serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
     return serializer.loads(token, salt='password-reset', max_age=expiration)
 
-# --------- EMAIL HELPERS ---------
 def send_confirmation_email(user):
     token = generate_confirmation_token(user.email)
     confirm_url = url_for('auth.confirm_email', token=token, _external=True)
     html = render_template('emails/confirm_email.html', user=user, confirm_url=confirm_url)
-    msg = Message('Confirme seu e-mail - Atestto', recipients=[user.email], html=html)
-    mail.send(msg)
+    enviar_email(
+        destinatario=user.email,
+        assunto='Confirme seu e-mail - Atestto',
+        corpo=html
+    )
 
 def send_reset_email(user):
     token = generate_reset_token(user.email)
     reset_url = url_for('auth.reset_password', token=token, _external=True)
     html = render_template('emails/reset_password.html', user=user, reset_url=reset_url)
-    msg = Message('Redefina sua senha - Atestto', recipients=[user.email], html=html)
-    mail.send(msg)
+    enviar_email(
+        destinatario=user.email,
+        assunto='Redefina sua senha - Atestto',
+        corpo=html
+    )
 
-# --------- UTIL ---------
-def normalize_cpf(cpf):
-    # Remove tudo que não for número
-    return re.sub(r'\D', '', cpf or '')
-
-# --------- ROUTES ---------
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -133,17 +128,10 @@ def logout():
 @auth_bp.route('/esqueci-senha', methods=['GET', 'POST'])
 def esqueci_senha():
     if request.method == 'POST':
-        cpf_ou_email = request.form.get('cpf')  # ou email
-        cpf_ou_email_normalizado = normalize_cpf(cpf_ou_email)
+        email = request.form.get('email')
+        user = get_user_by_email(email)
 
-        # Primeiro tenta buscar pelo email
-        user = get_user_by_email(cpf_ou_email)
-        # Se não encontrar pelo email, tenta CPF (normalizado)
-        if not user and cpf_ou_email_normalizado:
-            user = get_user_by_cpf(cpf_ou_email_normalizado)
-
-        # Mensagem genérica mesmo se não encontrar o usuário
-        flash('Se o CPF ou e-mail estiver cadastrado, você receberá um link para redefinir a senha.', 'info')
+        flash('Se o e-mail estiver cadastrado, você receberá um link para redefinir a senha.', 'info')
 
         if user:
             send_reset_email(user)

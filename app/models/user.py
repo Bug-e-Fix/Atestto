@@ -5,13 +5,13 @@ from flask_login import UserMixin
 from app.services.database import get_connection
 
 class User(UserMixin):
-    def __init__(self, id, name, email, password_hash, email_confirmed=False, created_at=None):
+    def __init__(self, id, nome, email, password_hash, email_confirmed=False, created_at=None):
         self.id = id
-        self.name = name
+        self.nome = nome
         self.email = email
         self.password_hash = password_hash
-        self.email_confirmed = email_confirmed  
-        self.created_at = created_at  
+        self.email_confirmed = email_confirmed
+        self.created_at = created_at
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -29,27 +29,7 @@ def get_user_by_email(email):
             if row:
                 return User(
                     row['id'],
-                    row['name'],
-                    row['email'],
-                    row['password_hash'],
-                    row.get('email_confirmed', False),
-                    row.get('created_at')
-                )
-            return None
-    finally:
-        conn.close()
-
-def get_user_by_cpf(cpf):
-    conn = get_connection()
-    try:
-        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
-            sql = "SELECT * FROM usuario WHERE cpf = %s"
-            cursor.execute(sql, (cpf,))
-            row = cursor.fetchone()
-            if row:
-                return User(
-                    row['id'],
-                    row['name'],
+                    row['nome'],
                     row['email'],
                     row['password_hash'],
                     row.get('email_confirmed', False),
@@ -69,7 +49,7 @@ def get_user_by_id(user_id):
             if row:
                 return User(
                     row['id'],
-                    row['name'],
+                    row['nome'],
                     row['email'],
                     row['password_hash'],
                     row.get('email_confirmed', False),
@@ -79,21 +59,21 @@ def get_user_by_id(user_id):
     finally:
         conn.close()
 
-def create_user(name, email, password):
-    user = User(None, name, email, None)
+def create_user(nome, email, password):
+    user = User(None, nome, email, None)
     user.set_password(password)
 
     conn = get_connection()
     try:
         with conn.cursor() as cursor:
             sql = """
-                INSERT INTO usuario (name, email, password_hash, email_confirmed)
+                INSERT INTO usuario (nome, email, password_hash, email_confirmed)
                 VALUES (%s, %s, %s, %s)
             """
-            cursor.execute(sql, (user.name, user.email, user.password_hash, False))
-        conn.commit()
-        user.id = cursor.lastrowid
-        return user
+            cursor.execute(sql, (user.nome, user.email, user.password_hash, False))
+            conn.commit()
+            user.id = cursor.lastrowid
+            return user
     except pymysql.err.IntegrityError:
         return None
     finally:
@@ -120,27 +100,26 @@ def update_user_password(user_id, new_password):
     finally:
         conn.close()
 
-def salvar_assinatura_usuario(user_id, nome, fonte, rubrica, cpf):
+def salvar_assinatura_usuario(user_id, nome, fonte, rubrica):
     conn = get_connection()
     try:
         with conn.cursor() as cursor:
             sql = """
-                INSERT INTO assinatura_config (usuario_id, nome, fonte, rubrica, cpf)
-                VALUES (%s, %s, %s, %s, %s)
+                INSERT INTO assinatura_config (usuario_id, nome, fonte, rubrica)
+                VALUES (%s, %s, %s, %s)
                 ON DUPLICATE KEY UPDATE 
                     nome = VALUES(nome),
                     fonte = VALUES(fonte),
-                    rubrica = VALUES(rubrica),
-                    cpf = VALUES(cpf)
+                    rubrica = VALUES(rubrica)
             """
-            cursor.execute(sql, (user_id, nome, fonte, rubrica, cpf))
+            cursor.execute(sql, (user_id, nome, fonte, rubrica))
         conn.commit()
     finally:
         conn.close()
 
 def apagar_usuarios_nao_confirmados(expiracao_horas=24):
     limite = datetime.utcnow() - timedelta(hours=expiracao_horas)
-    limite_str = limite.strftime('%Y-%m-%d %H:%M:%S')  
+    limite_str = limite.strftime('%Y-%m-%d %H:%M:%S')
 
     conn = get_connection()
     try:

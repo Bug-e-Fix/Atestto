@@ -1,12 +1,18 @@
 from flask import Flask
 from flask_login import LoginManager
 from flask_apscheduler import APScheduler
+from dotenv import load_dotenv
+import os
 
 from app.routes.auth import auth_bp
 from app.routes.dashboard import dashboard_bp
 from app.routes.assinatura import assinatura_bp
 from app.models.user import get_user_by_id, apagar_usuarios_nao_confirmados
 from app.extensions import mail
+from app.services.email_service import enviar_email  
+
+
+load_dotenv()
 
 scheduler = APScheduler()
 
@@ -45,6 +51,9 @@ def create_app():
         trigger='interval',
         hours=24
     )
+
+
+    app.enviar_email = enviar_email
 
     return app
 
