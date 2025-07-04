@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <title>Atestto Login</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <p>Não recebeu o email? <a href="{{ url_for('auth.reenviar_confirmacao') }}">Reenviar confirmação</a></p>
+
 </head>
 <body>
     <div class="container">

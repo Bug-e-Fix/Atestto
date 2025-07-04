@@ -1,4 +1,8 @@
 import os
+from dotenv import load_dotenv
+
+# Carrega as variáveis do .env
+load_dotenv()
 
 class Config:
     # Segurança
@@ -18,11 +22,11 @@ class Config:
     CONVERTED_FOLDER = 'converted'
     SIGNED_FOLDER = 'signed'
 
-    # E-mail (Flask-Mail com Outlook)
+    # Configurações de e-mail (Outlook)
     MAIL_SERVER = os.getenv('MAIL_SERVER', 'smtp.office365.com')
     MAIL_PORT = int(os.getenv('MAIL_PORT', 587))
     MAIL_USE_TLS = True
     MAIL_USE_SSL = False
-    MAIL_USERNAME = os.getenv('MAIL_USERNAME', 'seu-email@outlook.com')
-    MAIL_PASSWORD = os.getenv('MAIL_PASSWORD', 'sua-senha-ou-senha-de-app')
+    MAIL_USERNAME = os.getenv('equipe.atestto@outlook.com')
+    MAIL_PASSWORD = os.getenv('kqosvundttuqadhg')
     MAIL_DEFAULT_SENDER = os.getenv('MAIL_DEFAULT_SENDER', MAIL_USERNAME)

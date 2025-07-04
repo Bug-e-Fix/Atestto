@@ -7,7 +7,8 @@ from app.models.user import (
     update_user_confirmation,
     update_user_password
 )
-from app.services.email_service import enviar_email  # Função de envio de email atualizada
+from app.services.email_service import enviar_email
+from app.extensions import csrf
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -31,21 +32,13 @@ def send_confirmation_email(user):
     token = generate_confirmation_token(user.email)
     confirm_url = url_for('auth.confirm_email', token=token, _external=True)
     html = render_template('emails/confirm_email.html', user=user, confirm_url=confirm_url)
-    enviar_email(
-        destinatario=user.email,
-        assunto='Confirme seu e-mail - Atestto',
-        corpo=html
-    )
+    enviar_email(destinatario=user.email, assunto='Confirme seu e-mail - Atestto', corpo=html)
 
 def send_reset_email(user):
     token = generate_reset_token(user.email)
     reset_url = url_for('auth.reset_password', token=token, _external=True)
     html = render_template('emails/reset_password.html', user=user, reset_url=reset_url)
-    enviar_email(
-        destinatario=user.email,
-        assunto='Redefina sua senha - Atestto',
-        corpo=html
-    )
+    enviar_email(destinatario=user.email, assunto='Redefina sua senha - Atestto', corpo=html)
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
@@ -70,8 +63,7 @@ def register():
         user = create_user(name, email, password)
         if user:
             send_confirmation_email(user)
-            flash('Cadastro realizado! Confirme seu e-mail para ativar sua conta.', 'info')
-            return redirect(url_for('auth.login'))
+            return render_template('aguarde_confirmacao.html', email=email)
         else:
             flash('Erro ao cadastrar usuário', 'error')
 
@@ -111,7 +103,7 @@ def login():
         if user and user.check_password(senha):
             if not user.email_confirmed:
                 flash('Ative seu e-mail antes de acessar o sistema.', 'warning')
-                return redirect(url_for('auth.login'))
+                return render_template('aguarde_confirmacao.html', email=email)
             login_user(user)
             return redirect(url_for('dashboard.dashboard'))
         else:
@@ -173,3 +165,20 @@ def reset_password(token):
         return redirect(url_for('auth.login'))
 
     return render_template('reset_password.html', token=token)
+
+@auth_bp.route('/reenviar-confirmacao', methods=['POST'])
+@csrf.exempt
+def reenviar_confirmacao():
+    email = request.form.get('email')
+    user = get_user_by_email(email)
+
+    if user:
+        if user.email_confirmed:
+            flash('Seu e-mail já está confirmado.', 'info')
+        else:
+            send_confirmation_email(user)
+            flash('E-mail de confirmação reenviado!', 'success')
+    else:
+        flash('E-mail não encontrado.', 'warning')
+
+    return render_template('aguarde_confirmacao.html', email=email)

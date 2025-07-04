@@ -1,0 +1,17 @@
+<h2>Confirme seu e-mail</h2>
+<p>Enviamos um link de ativação para <strong>{{ email }}</strong></p>
+
+<form method="post" action="{{ url_for('auth.reenviar_confirmacao') }}">
+  <input type="hidden" name="email" value="{{ email }}">
+  <button type="submit">Reenviar e-mail de confirmação</button>
+</form>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <ul>
+      {% for category, message in messages %}
+        <li class="alert alert-{{ category }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}

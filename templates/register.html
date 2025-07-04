@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <title>Atestto Cadastro</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body>
     <div class="container">
         <div class="register-section">
             <div class="logo">
                 <img src="{{ url_for('static', filename='img/Logo.png') }}" style="height: 40px;">
-                <span></span>
             </div>
 
             <div class="form-wrapper">
@@ -26,21 +26,87 @@
                     {% endif %}
                 {% endwith %}
 
-                <form method="POST">
+                <form id="register-form" method="POST">
+                    <!-- Campo CSRF escondido para validação no POST -->
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="text" name="name" placeholder="Name" required>
-                    <input type="email" name="email" placeholder="Email" required>
+                    <input type="email" id="email" name="email" placeholder="Email" required>
                     <input type="password" name="password" placeholder="Password" required>
                     <input type="password" name="confirm_password" placeholder="Confirm password" required>
                     <button type="submit">Sign Up</button>
                 </form>
+
+                <div id="reenviar-email-container" style="display:none; margin-top: 1rem;">
+                    <p>Email enviado! Você pode reenviar em <span id="countdown">60</span> segundos.</p>
+                    <button id="btn-reenviar" disabled>Reenviar Email</button>
+                </div>
+
                 <p class="login-link">
                     Já tem uma conta? <a href="{{ url_for('auth.login') }}">Faça login</a>
                 </p>
             </div>
         </div>
-
-        <div class="image-section">
-        </div>
+        <div class="image-section"></div>
     </div>
+
+<script>
+    const form = document.getElementById('register-form');
+    const container = document.getElementById('reenviar-email-container');
+    const btnReenviar = document.getElementById('btn-reenviar');
+    const countdownEl = document.getElementById('countdown');
+    const emailInput = document.getElementById('email');
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    let timer;
+    let countdown = 60;
+
+    function startCountdown() {
+        countdown = 60;
+        countdownEl.textContent = countdown;
+        btnReenviar.disabled = true;
+
+        timer = setInterval(() => {
+            countdown--;
+            countdownEl.textContent = countdown;
+            if (countdown <= 0) {
+                clearInterval(timer);
+                btnReenviar.disabled = false;
+                countdownEl.textContent = '0';
+            }
+        }, 1000);
+    }
+
+    form.addEventListener('submit', () => {
+        // Após submissão, mostra o botão e inicia o timer
+        setTimeout(() => {
+            container.style.display = 'block';
+            startCountdown();
+        }, 1000);
+    });
+
+    btnReenviar.addEventListener('click', () => {
+        btnReenviar.disabled = true;
+        startCountdown();
+
+        fetch('{{ url_for("auth.reenviar_confirmacao") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ email: emailInput.value })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message || 'Email reenviado!');
+        })
+        .catch(() => {
+            alert('Erro ao reenviar email');
+            btnReenviar.disabled = false;
+            clearInterval(timer);
+        });
+    });
+</script>
+
 </body>
 </html>
