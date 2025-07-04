@@ -10,6 +10,8 @@ from app.routes.assinatura import assinatura_bp
 from app.models.user import get_user_by_id, apagar_usuarios_nao_confirmados
 from app.extensions import mail
 from app.services.email_service import enviar_email  
+from app.routes.teste_email import teste_email_bp
+
 
 
 load_dotenv()
@@ -51,9 +53,11 @@ def create_app():
         trigger='interval',
         hours=24
     )
-
+    
+    app.register_blueprint(teste_email_bp)
 
     app.enviar_email = enviar_email
+
 
     return app
 
