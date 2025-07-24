@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+
+{% block title %}Configurar Assinatura - Atestto{% endblock %}
+
+{% block head %}
+<style>
+  #pdf-container {
+    position: relative;
+    width: 600px;
+    height: 800px;
+    border: 1px solid #ccc;
+    cursor: crosshair;
+    margin-bottom: 20px;
+  }
+
+  #pdf-image {
+    width: 100%;
+    height: 100%;
+    user-select: none;
+  }
+
+  .assinatura-marker {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    border: 2px solid #fff;
+  }
+
+  .destinatario-group {
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 6px;
+  }
+
+  .assinaturas-list {
+    margin-top: 10px;
+  }
+
+  .assinaturas-list li {
+    font-size: 14px;
+    margin-bottom: 5px;
+  }
+
+  .btn-remover {
+    margin-left: 10px;
+    color: red;
+    cursor: pointer;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<h2>Configurar Assinatura</h2>
+<p>Adicione destinatários, escolha permissões e defina os locais de assinatura no documento.</p>
+
+<form method="POST" id="form-assinatura">
+  <div id="destinatarios-container">
+    <div class="destinatario-group">
+      <label>Email do destinatário:</label>
+      <input type="email" name="destinatarios[0][email]" required>
+      <label>Permissão:</label>
+      <select name="destinatarios[0][permissao]">
+        <option value="assinar">Assinar</option>
+        <option value="visualizar">Apenas visualizar</option>
+      </select>
+    </div>
+  </div>
+  <button type="button" onclick="adicionarDestinatario()">+ Adicionar destinatário</button>
+
+  <div id="pdf-container">
+    <img id="pdf-image" src="data:image/png;base64,{{ pdf_img_base64 }}" alt="PDF página 1" />
+  </div>
+
+  <ul id="assinaturas-list" class="assinaturas-list"></ul>
+
+  <input type="hidden" name="assinaturas_json" id="assinaturas_json">
+
+  <button type="submit" style="margin-top: 15px;">Salvar</button>
+</form>
+
+<script>
+  let destinatarioIndex = 1;
+  let assinaturas = [];
+  let coresPorEmail = {};
+  const coresDisponiveis = ['#007bff', '#28a745', '#ffc107', '#e83e8c', '#6610f2', '#17a2b8', '#fd7e14'];
+
+  function corParaEmail(email) {
+    if (!coresPorEmail[email]) {
+      coresPorEmail[email] = coresDisponiveis[Object.keys(coresPorEmail).length % coresDisponiveis.length];
+    }
+    return coresPorEmail[email];
+  }
+
+  function adicionarDestinatario() {
+    const container = document.getElementById("destinatarios-container");
+    const div = document.createElement("div");
+    div.classList.add("destinatario-group");
+    div.innerHTML = `
+      <label>Email do destinatário:</label>
+      <input type="email" name="destinatarios[${destinatarioIndex}][email]" required>
+      <label>Permissão:</label>
+      <select name="destinatarios[${destinatarioIndex}][permissao]">
+        <option value="assinar">Assinar</option>
+        <option value="visualizar">Apenas visualizar</option>
+      </select>
+    `;
+    container.appendChild(div);
+    destinatarioIndex++;
+  }
+
+  const pdfContainer = document.getElementById('pdf-container');
+  const assinaturasList = document.getElementById('assinaturas-list');
+  const assinaturasJson = document.getElementById('assinaturas_json');
+
+  pdfContainer.addEventListener('click', function (event) {
+    const ret = pdfContainer.getBoundingClientRect();
+    const x = event.clientX - ret.left;
+    const y = event.clientY - ret.top;
+
+    const email = prompt("Digite o email do destinatário responsável por esta assinatura:");
+    if (!email) return;
+
+    const cor = corParaEmail(email);
+
+    const marker = document.createElement('div');
+    marker.className = 'assinatura-marker';
+    marker.style.backgroundColor = cor;
+    marker.style.left = `${x}px`;
+    marker.style.top = `${y}px`;
+    marker.setAttribute('data-index', assinaturas.length);
+    marker.title = email;
+    marker.onclick = function () {
+      removerAssinatura(marker.getAttribute('data-index'));
+    };
+    pdfContainer.appendChild(marker);
+
+    assinaturas.push({ email, x, y, cor });
+    atualizarLista();
+  });
+
+  function removerAssinatura(index) {
+    index = parseInt(index);
+    assinaturas.splice(index, 1);
+
+    
+    const marcadores = document.querySelectorAll('.assinatura-marker');
+    marcadores.forEach(m => m.remove());
+
+    assinaturas.forEach((item, i) => {
+      const marker = document.createElement('div');
+      marker.className = 'assinatura-marker';
+      marker.style.left = `${item.x}px`;
+      marker.style.top = `${item.y}px`;
+      marker.style.backgroundColor = corParaEmail(item.email);
+      marker.setAttribute('data-index', i);
+      marker.title = item.email;
+      marker.onclick = function () {
+        removerAssinatura(marker.getAttribute('data-index'));
+      };
+      pdfContainer.appendChild(marker);
+    });
+
+    atualizarLista();
+  }
+
+  function atualizarLista() {
+    assinaturasList.innerHTML = '';
+    assinaturas.forEach((item, index) => {
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <span style="color:${item.cor}">${item.email}</span>
+        - X: ${item.x.toFixed(0)}, Y: ${item.y.toFixed(0)}
+        <span class="btn-remover" onclick="removerAssinatura(${index})">[remover]</span>
+      `;
+      assinaturasList.appendChild(li);
+    });
+    assinaturasJson.value = JSON.stringify(assinaturas);
+  }
+
+  document.getElementById('form-assinatura').addEventListener('submit', function (e) {
+    if (assinaturas.length === 0) {
+      e.preventDefault();
+      alert('Você precisa marcar ao menos uma posição de assinatura no PDF.');
+    }
+  });
+</script>
+{% endblock %}

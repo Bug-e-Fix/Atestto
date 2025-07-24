@@ -46,3 +46,4 @@ SQLAlchemy==2.0.41
 typing_extensions==4.14.1
 Werkzeug==3.1.3
 XlsxWriter==3.2.3
+

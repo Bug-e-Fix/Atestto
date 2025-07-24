@@ -61,7 +61,8 @@
     </form>
 
     <div style="text-align: right; margin-top: 40px;">
-        <a href="{{ url_for('auth.logout') }}" class="back-button-big">Sair da conta</a>
+        <!-- Ajuste para evitar erro de rota -->
+        <a href="{{ url_for('dashboard.dashboard') }}" class="back-button-big">Voltar ao Dashboard</a>
     </div>
 </section>
 

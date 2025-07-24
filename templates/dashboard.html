@@ -6,43 +6,63 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 </head>
 <body>
-    
+
     <nav class="navbar">
         <div class="logo">
             <img src="{{ url_for('static', filename='img/Logo.png') }}" alt="Logo Atestto">
         </div>
-       <ul class="nav-links">
-        <li><a href="{{ url_for('dashboard.documentos_enviados') }}">Documentos Enviados</a></li>
-        <li><a href="{{ url_for('dashboard.documentos_recebidos') }}">Documentos Recebidos</a></li>
-        <li><a href="{{ url_for('dashboard.minha_assinatura') }}">Minha Assinatura</a></li>
-
-</ul>
-
+        <ul class="nav-links">
+            <li><a href="{{ url_for('dashboard.documentos_enviados') }}">Documentos Enviados</a></li>
+            <li><a href="{{ url_for('dashboard.documentos_recebidos') }}">Documentos Recebidos</a></li>
+            <li><a href="{{ url_for('dashboard.minha_assinatura') }}">Minha Assinatura</a></li>
+        </ul>
     </nav>
-
 
     <div class="greeting">
         <h2>Olá, {{ current_user.name }}</h2>
     </div>
 
-    
     <div class="drop-area">
-        <p>Arraste e solte aqui o documento para assinar</p>
-        <input type="file" name="document" id="fileUpload">
+        <form action="{{ url_for('dashboard.upload_pdf') }}" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <p>Selecione um PDF para enviar:</p>
+            <input type="file" name="document" accept=".pdf" required>
+            <button type="submit">Enviar Documento</button>
+        </form>
     </div>
 
-    
     <section class="recent-documents">
         <h2>Documentos Recentes</h2>
-        {% for doc in documentos %}
-            <div class="document-card">
-                <div>
-                    <strong>{{ doc.nome }}</strong>
-                    <p>{{ doc.data_upload }}</p>
+
+        {% if documentos %}
+            {% for doc in documentos[:3] %}
+                <div class="document-card">
+                    <div class="document-info">
+                        <strong>{{ doc.nome }}</strong>
+                        <p>{{ doc.data_upload }}</p>
+
+                        <div class="document-actions">
+                            <a href="{{ url_for('dashboard.visualizar_documento', doc_id=doc.id) }}" target="_blank" class="btn-ver">Ver PDF</a>
+
+                            {% if doc.status == 'Pendente' %}
+                                <a href="{{ url_for('dashboard.configurar_assinatura', doc_id=doc.id) }}" class="btn-editar">Editar</a>
+                                <form action="{{ url_for('dashboard.assinar_documento', doc_id=doc.id) }}" method="post" style="display:inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn-assinar">Assinar</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <span class="status {{ 'assinado' if doc.status == 'Assinado' else 'pendente' }}">{{ doc.status }}</span>
                 </div>
-                <span class="status {{ 'assinado' if doc.status == 'Assinado' else 'pendente' }}">{{ doc.status }}</span>
-            </div>
-        {% endfor %}
+            {% endfor %}
+        {% else %}
+            <p>Nenhum documento enviado ainda.</p>
+        {% endif %}
+        <li><a href="{{ url_for('dashboard.documentos_enviados') }}">Mostrar mais</a></li>
     </section>
-</body>
+
+        
+        
+
 </html>

@@ -32,13 +32,13 @@ def send_confirmation_email(user):
     token = generate_confirmation_token(user.email)
     confirm_url = url_for('auth.confirm_email', token=token, _external=True)
     html = render_template('emails/confirm_email.html', user=user, confirm_url=confirm_url)
-    enviar_email(destinatario=user.email, assunto='Confirme seu e-mail - Atestto', corpo=html)
+    enviar_email(destinatario=user.email, assunto='Confirme seu e-mail - Atestto', corpo_html=html)
 
 def send_reset_email(user):
     token = generate_reset_token(user.email)
     reset_url = url_for('auth.reset_password', token=token, _external=True)
     html = render_template('emails/reset_password.html', user=user, reset_url=reset_url)
-    enviar_email(destinatario=user.email, assunto='Redefina sua senha - Atestto', corpo=html)
+    enviar_email(destinatario=user.email, assunto='Redefina sua senha - Atestto', corpo_html=html)
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
@@ -92,6 +92,7 @@ def confirm_email(token):
 
     return redirect(url_for('auth.login'))
 
+
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     erro = None
@@ -132,6 +133,7 @@ def esqueci_senha():
 
     return render_template('esqueci_senha.html')
 
+ 
 @auth_bp.route('/reset-senha/<token>', methods=['GET', 'POST'])
 def reset_password(token):
     try:
@@ -181,4 +183,6 @@ def reenviar_confirmacao():
     else:
         flash('E-mail não encontrado.', 'warning')
 
-    return render_template('aguarde_confirmacao.html', email=email)
+    return render_template('aguarde_confirmacao.html', email=email) 
+
+
