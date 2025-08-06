@@ -1,35 +1,32 @@
+# config.py
 import os
 from dotenv import load_dotenv
 
+# Carrega as variáveis de ambiente do arquivo .env
 load_dotenv()
 
 class Config:
-    SECRET_KEY = os.getenv('SECRET_KEY', 'Jackzera456')
+    # Chave secreta para sessões e segurança
+    SECRET_KEY = os.getenv('SECRET_KEY', 'fallback_super_secret_key')
 
-    DB_HOST = os.getenv('DB_HOST', 'localhost')
-    DB_USER = os.getenv('DB_USER', 'Giovanna')
-    DB_PASSWORD = os.getenv('DB_PASSWORD', 'Jackzera456')
-    DB_NAME = os.getenv('DB_NAME', 'Atestto')
-
-    SQLALCHEMY_DATABASE_URI = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-
-    UPLOAD_FOLDER = 'uploads'
-    CONVERTED_FOLDER = 'converted'
-    SIGNED_FOLDER = 'signed'
-
+    # --- Configurações de e-mail ---
     MAIL_SERVER = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
-
-   
-    try:
-        MAIL_PORT = int(os.getenv('MAIL_PORT', '587'))
-    except ValueError:
-        print("⚠️ Valor inválido para MAIL_PORT. Usando porta padrão 587")
-        MAIL_PORT = 587
-
-    MAIL_USE_TLS = os.getenv('MAIL_USE_TLS', 'True').lower() in ('true', '1', 'yes')
-    MAIL_USE_SSL = os.getenv('MAIL_USE_SSL', 'False').lower() in ('true', '1', 'yes')
-
-    MAIL_USERNAME = os.getenv('MAIL_USERNAME', 'equipe.atestto@outlook.com')
-    MAIL_PASSWORD = os.getenv('MAIL_PASSWORD', 'sua_senha_de_app_aqui')
+    MAIL_PORT = int(os.getenv('MAIL_PORT', 587))
+    MAIL_USE_TLS = os.getenv('MAIL_USE_TLS', 'True').lower() in ['true', '1', 'yes']
+    MAIL_USERNAME = os.getenv('MAIL_USERNAME')
+    MAIL_PASSWORD = os.getenv('MAIL_PASSWORD')
     MAIL_DEFAULT_SENDER = os.getenv('MAIL_DEFAULT_SENDER', MAIL_USERNAME)
+    # --- FIM Configurações de e-mail ---
+
+    # --- Configurações do Banco de Dados ---
+    DB_HOST = os.getenv('DB_HOST', 'localhost')
+    DB_USER = os.getenv('DB_USER')
+    DB_PASSWORD = os.getenv('DB_PASSWORD')
+    DB_NAME = os.getenv('DB_NAME')
+    # --- FIM Banco de Dados ---
+
+    # --- Outras configurações ---
+    UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER', 'uploads')
+    CONVERTED_FOLDER = os.getenv('CONVERTED_FOLDER', 'converted')
+    SIGNED_FOLDER = os.getenv('SIGNED_FOLDER', 'signed')
+    # --- FIM Outras configurações ---

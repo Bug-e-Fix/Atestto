@@ -38,11 +38,27 @@
                     <button type="submit">Entrar</button>
                 </form>
 
-                <p class="register-link">
-                    Não tem uma conta? <a href="{{ url_for('auth.register') }}">Cadastre-se</a>
-                </p>
-            </div>
-        </div>
-    </div>
-</body>
-</html>
+                <!-- Botão de login com Google -->
+<div style="text-align: center; margin-top: 15px;">
+    <a href="{{ url_for('google.login') }}" style="text-decoration: none;">
+        <button style="
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 10px 20px;
+            font-size: 14px;
+            border-radius: 5px;
+            cursor: pointer;
+        ">
+            <img src="{{ url_for('static', filename='img/google-logo.png') }}" alt="Google logo" style="height: 18px;">
+            Entrar com Google
+        </button>
+    </a>
+</div>
+
+<p class="register-link">
+    Não tem uma conta? <a href="{{ url_for('auth.register') }}">Cadastre-se</a>
+</p>

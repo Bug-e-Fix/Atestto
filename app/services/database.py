@@ -9,3 +9,6 @@ def get_connection():
         database=Config.DB_NAME,
         cursorclass=pymysql.cursors.DictCursor
     )
+
+def get_db_connection():
+    return get_connection()

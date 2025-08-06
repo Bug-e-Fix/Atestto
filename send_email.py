@@ -3,10 +3,9 @@ from flask_mail import Mail, Message
 import os
 from dotenv import load_dotenv
 
-# Carrega variáveis de ambiente
+# Carrega variáveis de ambiente do arquivo .env
 load_dotenv()
 
-# Inicializa o Flask
 app = Flask(__name__)
 
 # Configura o Flask-Mail com variáveis de ambiente
@@ -41,7 +40,7 @@ if __name__ == '__main__':
     with app.app_context():
         print("Tentando enviar e-mail...")
         enviado = enviar_email(
-            destinatario='seu-email-pessoal@gmail.com',
+            destinatario='fgiovanna16@gmail.com',  # <-- Mude aqui!
             assunto='Teste de envio - Atestto',
             corpo_html='<p>Olá! Este é um teste de envio de e-mail com Flask-Mail 🎉</p>'
         )

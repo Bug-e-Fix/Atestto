@@ -1,2 +1,12 @@
-<!-- <a href="{{ url_for('auth.login') }}">Login</a>
-<a href="{{ url_for('auth.register') }}">register</a> -->
+<!doctype html>
+<html>
+  <body>
+    {% if user.is_authenticated %}
+      <p>Olá, {{ user.name }}!</p>
+      <a href="{{ url_for('dashboard') }}">Ir para o Dashboard</a><br>
+      <a href="{{ url_for('logout') }}">Logout</a>
+    {% else %}
+      <a href="{{ url_for('google.login') }}">Login com Google</a>
+    {% endif %}
+  </body>
+</html>

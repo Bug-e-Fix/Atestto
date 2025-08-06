@@ -1,28 +1,9 @@
-<!DOCTYPE html>
-<html lang="pt">
-<head>
-    <meta charset="UTF-8">
-    <title>Esqueci a Senha - Atestto</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/esqueci_senha.css') }}">
-</head>
-<body>
-    <div class="auth-container">
-        <h2 class="auth-title">Esqueci minha senha</h2>
-
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                <div class="auth-message success">{{ messages[0] }}</div>
-            {% endif %}
-        {% endwith %}
-
-        <form method="POST">
-            <label for="email" class="form-label">Digite seu e-mail:</label>
-            <input type="email" id="email" name="email" placeholder="Ex: email@teste.com" class="form-input" required>
-
-            <button type="submit" class="btn-primary">Enviar</button>
-        </form>
-
-        <a href="{{ url_for('auth.login') }}" class="auth-link">Voltar para login</a>
-    </div>
-</body>
-</html>
+{% extends "base.html" %}
+{% block content %}
+  <h2>Esqueci minha senha</h2>
+  <form method="POST">
+    <label>Email:</label>
+    <input type="email" name="email" required>
+    <button type="submit">Enviar link</button>
+  </form>
+{% endblock %}
