@@ -1,18 +1,20 @@
 # app/routes/google_auth.py
 
+import os
 from flask import redirect, url_for
 from flask_dance.contrib.google import make_google_blueprint, google
 from flask_login import login_user
 from app.extensions import login_manager
 from app.models.user import User, get_user_by_email, create_user
-import os
 
-# Blueprint do Google
+# Configura o blueprint do Google OAuth
 google_bp = make_google_blueprint(
     client_id=os.getenv("GOOGLE_CLIENT_ID"),
     client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
-    redirect_url="/login/google/authorized",
-    scope=["profile", "email"]
+    scope=["profile", "email"],
+    login_url="/",                # inicia o OAuth em /login/google/
+    authorized_url="/authorized", # rota de callback /login/google/authorized
+    redirect_to="google_authorized"
 )
 
 @login_manager.user_loader
@@ -25,19 +27,17 @@ def google_authorized():
         return redirect(url_for("google.login"))
 
     resp = google.get("/oauth2/v2/userinfo")
-
     if not resp.ok:
         return f"Erro ao autenticar com o Google (status {resp.status_code})", 400
 
     data = resp.json()
-    if "id" not in data or "email" not in data or "name" not in data:
-        return "Erro ao obter dados do Google. Resposta incompleta.", 400
+    if "email" not in data or "name" not in data:
+        return "Dados incompletos do Google.", 400
 
     email = data["email"]
-    name = data["name"]
+    name  = data["name"]
 
     user = get_user_by_email(email)
-
     if not user:
         user = create_user(nome=name, email=email, senha=None, google_login=True)
 

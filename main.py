@@ -4,12 +4,13 @@ from flask import Flask, redirect, url_for, render_template
 from flask_apscheduler import APScheduler
 from flask_wtf.csrf import CSRFError, generate_csrf
 from dotenv import load_dotenv
+from app.models.user import apagar_usuarios_nao_confirmados
 import os
 
 # Carrega .env
-load_dotenv()
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'))
 
-from app.extensions import csrf, login_manager, mail
+from app.extensions import csrf, login_manager, mail   # removido oauth
 scheduler = APScheduler()
 
 def create_app():
@@ -36,7 +37,7 @@ def create_app():
     if not app.config['MAIL_USERNAME'] or not app.config['MAIL_PASSWORD']:
         raise RuntimeError("MAIL_USERNAME or MAIL_PASSWORD not configured in .env.")
 
-    # Inicialização
+    # Inicialização das extensões
     mail.init_app(app)
     csrf.init_app(app)
     login_manager.init_app(app)
@@ -46,7 +47,6 @@ def create_app():
     scheduler.init_app(app)
     scheduler.start()
 
-    from app.models.user import apagar_usuarios_nao_confirmados
     def job_apagar_usuarios():
         with app.app_context():
             apagar_usuarios_nao_confirmados(expiracao_horas=24)
@@ -63,13 +63,13 @@ def create_app():
     from app.routes.dashboard import dashboard_bp
     from app.routes.assinatura import assinatura_bp
     from app.routes.public import public_bp
-    from app.routes import google_auth
+    from app.routes.google_auth import google_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(assinatura_bp)
     app.register_blueprint(public_bp)
-    app.register_blueprint(google_auth.google_bp, url_prefix="/login/google")
+    app.register_blueprint(google_bp, url_prefix="/login/google")
 
     # Email service
     from app.services.email_service import enviar_email

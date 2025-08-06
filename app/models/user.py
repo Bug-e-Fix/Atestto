@@ -2,6 +2,22 @@
 
 from app.extensions import get_db_connection
 from flask_login import UserMixin
+from datetime import datetime, timedelta
+
+def apagar_usuarios_nao_confirmados(expiracao_horas=24):
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    limite_tempo = datetime.now() - timedelta(hours=expiracao_horas)
+    cursor.execute(
+        "DELETE FROM usuarios WHERE confirmado = 0 AND criado_em < %s",
+        (limite_tempo,)
+    )
+
+    connection.commit()
+    cursor.close()
+    connection.close()
+
 
 class User(UserMixin):
     def __init__(self, id, nome, email):
@@ -20,6 +36,7 @@ class User(UserMixin):
             return User(id=row[0], nome=row[1], email=row[2])
         return None
 
+
 def get_user_by_email(email):
     connection = get_db_connection()
     cursor = connection.cursor()
@@ -29,6 +46,7 @@ def get_user_by_email(email):
     if row:
         return User(id=row[0], nome=row[1], email=row[2])
     return None
+
 
 def create_user(nome, email, senha=None, google_login=False):
     connection = get_db_connection()
@@ -41,3 +59,38 @@ def create_user(nome, email, senha=None, google_login=False):
     user_id = cursor.lastrowid
     connection.close()
     return User(id=user_id, nome=nome, email=email)
+
+
+def update_user_confirmation(email):
+    """
+    Marca o usuário como confirmado (confirmado = 1) baseado no e-mail.
+    """
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    
+    cursor.execute(
+        "UPDATE usuarios SET confirmado = 1 WHERE email = %s",
+        (email,)
+    )
+    
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+
+def update_user_password(email, nova_senha):
+    """
+    Atualiza a senha do usuário baseado no e-mail.
+    Você pode adaptar para receber o ID ao invés do e-mail, se preferir.
+    """
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    
+    cursor.execute(
+        "UPDATE usuarios SET senha = %s WHERE email = %s",
+        (nova_senha, email)
+    )
+    
+    connection.commit()
+    cursor.close()
+    connection.close()
