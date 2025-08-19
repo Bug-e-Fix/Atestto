@@ -6,8 +6,8 @@ __pycache__/
 *.pyc
 
 # Ignorar arquivo de variáveis de ambiente
-.env
-
+.txt
+.key
 # Ignorar pastas temporárias e caches
 *.log
 *.tmp

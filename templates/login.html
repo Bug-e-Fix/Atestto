@@ -1,64 +1,42 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-br">
 <head>
-    <meta charset="UTF-8" />
-    <title>Atestto Login</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <meta charset="UTF-8">
+    <title>Login - Atestto</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <div class="container">
-        <div class="login-section">
-            <div class="logo" style="position: absolute; top: 30px; left: 40px;">
-                <img src="{{ url_for('static', filename='img/Logo.png') }}" alt="Atestto logo" style="height: 40px;" />
-            </div>
+    <div class="card">
+        <h1>Login</h1>
 
-            <div class="form-wrapper">
-                <h1>Login</h1>
-                <p>Faça o login</p>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for msg in messages %}
+                        <p>{{ msg }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
 
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <p class="flash-message {{ category }}">{{ message }}</p>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
+        <!-- Formulário de login -->
+        <form method="POST" action="{{ url_for('auth.login') }}">
+            <input type="email" name="email" placeholder="E-mail" required>
+            <input type="password" name="senha" placeholder="Senha" required>
+            <button type="submit">Entrar</button>
+        </form>
 
-                {% if erro %}
-                    <p style="color: red;">{{ erro }}</p>
-                {% endif %}
+        <p>Não tem conta? <a href="{{ url_for('auth.register') }}">Cadastre-se</a></p>
 
-                <form method="POST" action="{{ url_for('auth.login') }}">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <input type="email" name="email" placeholder="Email" required />
-                    <input type="password" name="senha" placeholder="Senha" required />
-                    <div class="forgot">
-                        <a href="{{ url_for('auth.esqueci_senha') }}">Esqueceu a senha?</a>
-                    </div>
-                    <button type="submit">Entrar</button>
-                </form>
+        <hr>
 
-                <!-- Botão de login com Google -->
-<div style="text-align: center; margin-top: 15px;">
-    <a href="{{ url_for('google.login') }}" style="text-decoration: none;">
-        <button style="
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            background-color: white;
-            border: 1px solid #ccc;
-            padding: 10px 20px;
-            font-size: 14px;
-            border-radius: 5px;
-            cursor: pointer;
-        ">
-            <img src="{{ url_for('static', filename='img/google-logo.png') }}" alt="Google logo" style="height: 18px;">
-            Entrar com Google
-        </button>
-    </a>
-</div>
-
-<p class="register-link">
-    Não tem uma conta? <a href="{{ url_for('auth.register') }}">Cadastre-se</a>
-</p>
+        <!-- Formulário para reenviar confirmação -->
+        <h3>Não recebeu o e-mail de confirmação?</h3>
+        <form method="POST" action="{{ url_for('auth.resend_confirmation') }}">
+            <input type="email" name="email" placeholder="Digite seu e-mail" required>
+            <button type="submit">Reenviar e-mail</button>
+        </form>
+        <p>Verifique também a lixeira e o spam!</p>
+    </div>
+</body>
+</html>

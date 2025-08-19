@@ -1,114 +1,12 @@
-{% extends 'base.html' %}
-
-{% block title %}Minha Assinatura - Atestto{% endblock %}
-
-{% block head %}
-<link href="https://fonts.googleapis.com/css2?family=Roboto&family=Pacifico&family=Dancing+Script&family=Satisfy&family=Great+Vibes&family=Kaushan+Script&family=Indie+Flower&family=Shadows+Into+Light&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/minha_assinatura.css') }}">
-{% endblock %}
-
-{% block content %}
-<section class="assinatura-section">
-    <h2>Configurar Assinatura</h2>
-
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <script>
-                window.onload = function() {
-                    {% for msg in messages %}
-                        alert("{{ msg }}");
-                    {% endfor %}
-                }
-            </script>
-        {% endif %}
-    {% endwith %}
-
-    <form method="POST" id="assinaturaForm" onsubmit="return validarFormulario()">
-        <div class="assinatura-bloco">
-            <label for="nome">Digite seu nome completo como está no crachá:</label>
-            <input type="text" id="nome" name="nome" placeholder="Ex: Giovanna Fernandes"
-                   oninput="onInputChange()" required
-                   value="{{ dados.nome or '' }}">
-        </div>
-
-        <div class="assinatura-bloco">
-            <label for="fonte">Escolha uma fonte:</label>
-            <select id="fonte" name="fonte" onchange="onInputChange()">
-                {% set fontes = ['Roboto','Pacifico','Dancing Script','Satisfy','Great Vibes','Kaushan Script','Indie Flower','Shadows Into Light'] %}
-                {% for f in fontes %}
-                    <option value="{{ f }}" {% if dados.fonte == f %}selected{% endif %}>{{ f }}</option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <div class="assinatura-bloco">
-            <label>Visualização da Assinatura:</label>
-            <div id="assinatura-visual" class="assinatura-preview" style="font-family: {{ dados.fonte or 'Roboto' }}">
-                {{ dados.nome or 'Sua assinatura' }}
-            </div>
-        </div>
-
-        <div class="assinatura-bloco">
-            <label>Rubrica (iniciais):</label>
-            <div id="rubrica-preview" class="rubrica-preview" style="font-family: {{ dados.fonte or 'Roboto' }}">
-                {{ dados.rubrica or '' }}
-            </div>
-        </div>
-
-        <div class="assinatura-bloco">
-            <button type="submit" id="btnSalvar" class="btn-salvar" disabled>Salvar Assinatura</button>
-        </div>
-    </form>
-
-    <div style="text-align: right; margin-top: 40px;">
-        <!-- Ajuste para evitar erro de rota -->
-        <a href="{{ url_for('auth.login') }}" class="back-button-big">Sair</a>
-    </div>
-</section>
-
-<script>
-    let initial = {
-        nome: "{{ dados.nome or '' }}",
-        fonte: "{{ dados.fonte or 'Roboto' }}"
-    };
-
-    function atualizarAssinatura() {
-        const nome = document.getElementById('nome').value.trim();
-        const fonte = document.getElementById('fonte').value;
-        const assinaturaEl = document.getElementById('assinatura-visual');
-        const rubricaEl = document.getElementById('rubrica-preview');
-
-        assinaturaEl.textContent = nome || 'Sua assinatura';
-        assinaturaEl.style.fontFamily = fonte;
-
-        const partes = nome.split(' ');
-        if (partes.length >= 2) {
-            const iniciais = partes[0][0] + partes[partes.length - 1][0];
-            rubricaEl.textContent = iniciais.toUpperCase();
-        } else {
-            rubricaEl.textContent = '';
-        }
-        rubricaEl.style.fontFamily = fonte;
-    }
-
-    function onInputChange() {
-        atualizarAssinatura();
-        const nome = document.getElementById('nome').value.trim();
-        const fonte = document.getElementById('fonte').value;
-        const changed = nome !== initial.nome || fonte !== initial.fonte;
-        document.getElementById('btnSalvar').disabled = !changed;
-    }
-
-    function validarFormulario() {
-        const nome = document.getElementById('nome').value.trim();
-        const partes = nome.split(' ');
-        if (partes.length < 2) {
-            alert("Por favor, digite seu nome completo (nome e sobrenome), conforme o crachá.");
-            return false;
-        }
-        return confirm("Deseja realmente salvar sua assinatura?");
-    }
-
-    window.onload = atualizarAssinatura;
-</script>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Minha Assinatura</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <h1>Minha Assinatura</h1>
+    <p>Aqui você poderá gerenciar sua assinatura e rubrica.</p>
+</body>
+</html>
