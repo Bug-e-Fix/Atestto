@@ -1,20 +1,15 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from flask_login import login_user, logout_user, login_required, UserMixin
+from flask_login import login_user, logout_user, login_required
 from app.services.user_service import create_user, verify_user, get_user_by_email
 from app.services.db import get_db
 from app.services.email_service import send_confirmation_email
 from app.services.token_service import confirm_token
 from app.extensions import login_manager
+from app.models.user import User
+import pymysql
+
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
-
-
-# ----------------- CLASSE USER -----------------
-class User(UserMixin):
-    def __init__(self, id, nome, email):
-        self.id = id
-        self.nome = nome
-        self.email = email
 
 
 # ----------------- LOGIN -----------------
@@ -23,13 +18,13 @@ def login():
     if request.method == 'POST':
         email = request.form.get('email')
         senha = request.form.get('senha')
-        user_data = verify_user(email, senha)
-        if user_data:
-            if not user_data['confirmed']:
+        user = verify_user(email, senha)
+
+        if user:
+            if not user.confirmed:
                 flash("Você precisa confirmar seu e-mail antes de entrar!")
                 return redirect(url_for("auth.login"))
 
-            user = User(user_data['id'], user_data['name'], user_data['email'])
             login_user(user)
             return redirect(url_for("dashboard.dashboard_view"))
 
@@ -49,12 +44,12 @@ def logout():
 @login_manager.user_loader
 def load_user(user_id):
     db = get_db()
-    cursor = db.cursor(dictionary=True)
+    cursor = db.cursor(pymysql.cursors.DictCursor)
     cursor.execute("SELECT * FROM usuarios WHERE id=%s", (user_id,))
     user = cursor.fetchone()
     cursor.close()
     if user:
-        return User(user['id'], user['name'], user['email'])
+        return User(user['id'], user['name'], user['email'], user['confirmed'])
     return None
 
 
@@ -70,8 +65,9 @@ def register():
             flash("E-mail já cadastrado!")
             return redirect(url_for("auth.register"))
 
-        create_user(nome, email, senha)  # senha já criptografada
-        send_confirmation_email(email)   # envia e-mail de confirmação automaticamente
+        create_user(nome, email, senha)
+        user = get_user_by_email(email)  # pega o User criado
+        send_confirmation_email(user)
 
         flash("Cadastro realizado! Verifique seu e-mail para ativar sua conta.")
         return redirect(url_for("auth.login"))
@@ -102,8 +98,8 @@ def confirm_email(token):
 def resend_confirmation():
     email = request.form.get('email')
     user = get_user_by_email(email)
-    if user and not user['confirmed']:
-        send_confirmation_email(email)  # reenviar e-mail automaticamente
+    if user and not user.confirmed:
+        send_confirmation_email(user)
         flash("E-mail de confirmação reenviado! Confira a lixeira ou spam.")
     else:
         flash("E-mail não encontrado ou já confirmado.")
@@ -113,9 +109,12 @@ def resend_confirmation():
 # ----------------- ROTA DE TESTE DE E-MAIL -----------------
 @bp.route('/test-email')
 def test_email():
-    test_user_email = "giovanna.fernandes@grupopomin.com.br"  # coloque aqui um e-mail válido
-    try:
-        send_confirmation_email(test_user_email)
-        return "E-mail de teste enviado com sucesso!"
-    except Exception as e:
-        return f"Erro ao enviar e-mail de teste: {e}"
+    test_user_email = "giovanna.fernandes@grupopomin.com.br"
+    user = get_user_by_email(test_user_email)
+    if user:
+        try:
+            send_confirmation_email(user)
+            return "E-mail de teste enviado com sucesso!"
+        except Exception as e:
+            return f"Erro ao enviar e-mail de teste: {e}"
+    return "Usuário de teste não encontrado."

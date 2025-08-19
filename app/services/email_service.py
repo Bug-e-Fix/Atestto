@@ -4,27 +4,35 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from flask import current_app, url_for
 from app.services.token_service import generate_token
+from email.header import Header
 
-def send_confirmation_email(user_email):
+def send_confirmation_email(user):
     """
     Envia e-mail de confirmação usando as configs do Flask app.
+    Recebe o objeto `user` com atributos `email` e `nome`.
     """
+    user_email = user.email
     token = generate_token(user_email)
     confirm_url = url_for('auth.confirm_email', token=token, _external=True)
 
     msg = MIMEMultipart()
     msg["From"] = current_app.config["MAIL_USERNAME"]
     msg["To"] = user_email
-    msg["Subject"] = "Confirme seu cadastro no Atestto"
-    
+
+    # ⚡ Corrige Subject para UTF-8
+    msg["Subject"] = str(Header("Confirme seu cadastro no Atestto", 'utf-8'))
+
     body = f"""
-    <p>Ola,</p>
+    <p>Oi, {user.nome}!</p>
     <p>Obrigado por se cadastrar no <b>Atestto</b>!</p>
     <p>Para ativar sua conta, clique no link abaixo:</p>
     <p><a href="{confirm_url}">Confirmar cadastro</a></p>
     <p>Se voce nao solicitou este cadastro, ignore este e-mail.</p>
     """
-    msg.attach(MIMEText(body, "html"))
+
+    # ⚡ Cria o corpo UTF-8 sem sobrescrever o MIMEMultipart
+    body_part = MIMEText(body, 'html', 'utf-8')
+    msg.attach(body_part)
 
     try:
         if current_app.config["MAIL_USE_SSL"]:

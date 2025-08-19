@@ -28,15 +28,15 @@
 
         <p>Não tem conta? <a href="{{ url_for('auth.register') }}">Cadastre-se</a></p>
 
-        <hr>
-
+        <section>
+            <hr>
         <!-- Formulário para reenviar confirmação -->
         <h3>Não recebeu o e-mail de confirmação?</h3>
         <form method="POST" action="{{ url_for('auth.resend_confirmation') }}">
             <input type="email" name="email" placeholder="Digite seu e-mail" required>
             <button type="submit">Reenviar e-mail</button>
         </form>
-        <p>Verifique também a lixeira e o spam!</p>
+        </section>
     </div>
 </body>
 </html>
