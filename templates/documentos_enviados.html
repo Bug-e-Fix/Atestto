@@ -1,12 +1,27 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Documentos Enviados</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body>
-    <h1>Documentos Enviados</h1>
-    <p>Aqui será listados os documentos enviados.</p>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Documentos Enviados{% endblock %}
+
+{% block content %}
+<h1>Documentos Enviados</h1>
+
+<!-- Upload de Documento -->
+<div class="upload-container" id="upload-container">
+    <p>Arraste o documento aqui ou clique no botão</p>
+    <input type="file" id="fileInput">
+    <button id="chooseFile">Escolher Arquivo</button>
+</div>
+
+<!-- Lista de Documentos Enviados -->
+<h2>Últimos Documentos Enviados</h2>
+<div class="document-list">
+    {% for doc in documentos_enviados %}
+    <div class="document-card">
+        <p><strong>{{ doc.nome }}</strong></p>
+        <p>Data: {{ doc.data_upload }}</p>
+        <button>Visualizar</button>
+    </div>
+    {% else %}
+    <p>Nenhum documento enviado ainda.</p>
+    {% endfor %}
+</div>
+{% endblock %}

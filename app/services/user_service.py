@@ -1,9 +1,8 @@
-import pymysql
 from app.services.db import get_db
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.models.user import User
+import pymysql
 
-# ----------------- CRIAR USUÁRIO -----------------
 def create_user(nome, email, senha):
     db = get_db()
     cursor = db.cursor()
@@ -15,8 +14,6 @@ def create_user(nome, email, senha):
     db.commit()
     cursor.close()
 
-
-# ----------------- VERIFICAR USUÁRIO (LOGIN) -----------------
 def verify_user(email, senha):
     db = get_db()
     cursor = db.cursor(pymysql.cursors.DictCursor)
@@ -27,8 +24,6 @@ def verify_user(email, senha):
         return User(user['id'], user['name'], user['email'], user['confirmed'])
     return None
 
-
-# ----------------- BUSCAR USUÁRIO POR E-MAIL -----------------
 def get_user_by_email(email):
     db = get_db()
     cursor = db.cursor(pymysql.cursors.DictCursor)

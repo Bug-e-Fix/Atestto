@@ -13,26 +13,26 @@ def create_app():
     login_manager.login_view = "auth.login"
     login_manager.init_app(app)
 
-    # Registra Blueprints
-    from app.routes import auth, dashboard, assinatura, document
+    # Importa e registra os Blueprints
+    from app.routes import auth, dashboard, assinatura, documentos
     app.register_blueprint(auth.bp)
     app.register_blueprint(dashboard.bp)
     app.register_blueprint(assinatura.bp)
-    app.register_blueprint(document.bp)
+    app.register_blueprint(documentos.bp)
 
     # Inicializa banco
     with app.app_context():
-        db = init_db(app)
+        init_db(app)
 
     # Redireciona "/" para login ou dashboard
     @app.route("/")
     def index():
         if current_user.is_authenticated:
-            return redirect(url_for("dashboard.dashboard_view"))
+            return redirect(url_for("dashboard.index"))
         return redirect(url_for("auth.login"))
 
     return app
 
 if __name__ == "__main__":
     app = create_app()
-    app.run(debug=True)
+    app.run(debug=True, port=5001)

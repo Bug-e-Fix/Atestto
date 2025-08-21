@@ -1,12 +1,19 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Documentos Recebidos</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body>
-    <h1>Documentos Recebidos</h1>
-    <p>Aqui será listados os documentos recebidos.</p>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Documentos Recebidos{% endblock %}
+
+{% block content %}
+<h1>Documentos Recebidos</h1>
+
+<div class="document-list">
+    {% for doc in documentos_recebidos %}
+    <div class="document-card" style="{% if doc.visualizado==0 %}border: 2px solid #1e3a8a;{% endif %}">
+        <p><strong>{{ doc.nome }}</strong></p>
+        <p>Data: {{ doc.data_upload }}</p>
+        <p>Status: {% if doc.visualizado %}Visualizado{% else %}Não visualizado{% endif %}</p>
+        <button>Visualizar</button>
+    </div>
+    {% else %}
+    <p>Nenhum documento recebido ainda.</p>
+    {% endfor %}
+</div>
+{% endblock %}

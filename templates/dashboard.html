@@ -1,11 +1,32 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Dashboard - Atestto</title>
-</head>
-<body>
-    <h1>Bem-vindo(a), {{ nome }}!</h1>
-    <a href="{{ url_for('auth.logout') }}">Sair</a>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Bem-vindo ao Atestto, {{ current_user.nome }}!</h1>
+
+    <!-- Botões rápidos -->
+    <div class="quick-links">
+        <a class="btn" href="{{ url_for('dashboard.documentos_enviados') }}">Documentos Enviados</a>
+        <a class="btn" href="{{ url_for('dashboard.documentos_recebidos') }}">Documentos Recebidos</a>
+        <a class="btn" href="{{ url_for('dashboard.minha_assinatura') }}">Minha Assinatura</a>
+    </div>
+
+    <hr style="margin: 30px 0;">
+
+    <p>Aqui estão os documentos recebidos que ainda não foram visualizados:</p>
+
+    <!-- Lista de Documentos Recebidos -->
+    <div class="document-list">
+        {% for doc in documentos_recebidos %}
+        <div class="document-card">
+            <p><strong>{{ doc.nome }}</strong></p>
+            <p>Data: {{ doc.data_upload }}</p>
+            <button>Visualizar</button>
+        </div>
+        {% else %}
+        <p>Você não tem documentos novos.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

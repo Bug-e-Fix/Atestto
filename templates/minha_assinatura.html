@@ -1,12 +1,20 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Minha Assinatura</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body>
-    <h1>Minha Assinatura</h1>
-    <p>Aqui você poderá gerenciar sua assinatura e rubrica.</p>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Minha Assinatura{% endblock %}
+
+{% block content %}
+<h1>Minha Assinatura</h1>
+
+<form method="POST">
+    <label for="assinatura_nome">Nome da Assinatura:</label>
+    <input type="text" name="assinatura_nome" id="assinatura_nome" value="{{ assinatura.nome }}">
+
+    <label for="assinatura_fonte">Fonte:</label>
+    <select name="assinatura_fonte" id="assinatura_fonte">
+        <option value="Arial" {% if assinatura.fonte=='Arial' %}selected{% endif %}>Arial</option>
+        <option value="Times New Roman" {% if assinatura.fonte=='Times New Roman' %}selected{% endif %}>Times New Roman</option>
+        <option value="Calibri" {% if assinatura.fonte=='Calibri' %}selected{% endif %}>Calibri</option>
+    </select>
+
+    <button type="submit" class="btn">Salvar Assinatura</button>
+</form>
+{% endblock %}
