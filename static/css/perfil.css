@@ -1,0 +1,23 @@
+/* Perfil do usuário */
+h1, h2 {
+  color: #1e3a8a;
+}
+
+p {
+  margin: 5px 0;
+}
+
+.btn {
+  background-color: #1e3a8a;
+  color: white;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 5px;
+  text-decoration: none;
+  display: inline-block;
+  margin-top: 10px;
+}
+
+.btn:hover {
+  background-color: #3b5aa0;
+}

@@ -19,10 +19,10 @@ def minha_assinatura():
             cursor.close()
             flash("Assinatura salva com sucesso!", "success")
             return redirect(url_for("assinatura.minha_assinatura"))
-    # busca assinatura atual
+
     cursor = db.cursor()
     cursor.execute("SELECT assinatura_nome, assinatura_fonte FROM usuarios WHERE id=%s", (current_user.id,))
     row = cursor.fetchone()
     cursor.close()
-    assinatura = {"nome": row[0] if row and row[0] else "", "fonte": row[1] if row and row[1] else "Arial"}
+    assinatura = {"nome": row["assinatura_nome"] if row else "", "fonte": row["assinatura_fonte"] if row else "Arial"}
     return render_template("minha_assinatura.html", assinatura=assinatura)

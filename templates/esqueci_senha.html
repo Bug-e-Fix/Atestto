@@ -1,0 +1,9 @@
+<form action="{{ url_for('auth.esqueci_senha') }}" method="POST">
+    <input type="email" name="email" id="email" placeholder="Digite seu e-mail" autocomplete="email" required>
+    <button type="submit">Enviar link de redefinição</button>
+</form>
+<form action="{{ url_for('auth.redefinir_senha', token=token) }}" method="POST">
+    <input type="password" name="senha_nova" id="senha_nova" placeholder="Nova senha" autocomplete="new-password" required>
+    <input type="password" name="senha_confirm" id="senha_confirm" placeholder="Confirme a nova senha" autocomplete="new-password" required>
+    <button type="submit">Redefinir senha</button>
+</form>

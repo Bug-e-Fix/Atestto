@@ -1,0 +1,20 @@
+/* Documentos Recebidos */
+h1, h2 {
+  color: #1e3a8a;
+}
+
+.document-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.document-card {
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.document-card[style*="border: 2px solid #1e3a8a"] {
+  background-color: #e0e7ff; /* destaca não visualizados */
+}

@@ -1,0 +1,29 @@
+/* Documentos Enviados */
+h1, h2 {
+  color: #1e3a8a;
+}
+
+.upload-container {
+  border: 2px dashed #1e3a8a;
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 20px;
+  border-radius: 5px;
+}
+
+.upload-container input[type="file"] {
+  display: block;
+  margin: 10px auto;
+}
+
+.document-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.document-card {
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 5px;
+}

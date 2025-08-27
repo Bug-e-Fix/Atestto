@@ -1,0 +1,78 @@
+/* Layout geral */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+/* Header */
+.header {
+  background-color: #1e3a8a;
+  color: white;
+  padding: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Logo */
+.header .logo a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 1.5em;
+}
+
+/* Navbar */
+.navbar a {
+  color: white;
+  margin: 15px;
+  text-decoration: none;
+}
+
+.navbar .dropdown {
+  position: relative;
+  display: inline-block;
+   margin: 15px;
+}
+
+.navbar .dropdown-menu {
+  display: none;
+  position: absolute;
+  background-color: #f1f1f1;
+  min-width: 150px;
+  right: 0;
+  z-index: 1;
+}
+
+.navbar .dropdown:hover .dropdown-menu {
+  display: block;
+}
+
+.navbar .dropdown-menu a {
+  color: #1e3a8a;
+  padding: 10px;
+  display: block;
+  text-decoration: none;
+}
+
+.navbar .dropdown-menu a:hover {
+  background-color: #ddd;
+}
+
+/* Main content */
+.main-content {
+  flex: 1;
+  padding: 20px;
+  margin: 50px; /* largura da sidebar */
+}
+
+/* Footer */
+.footer {
+  background-color: #1e3a8a;
+  color: white;
+  text-align: center;
+  padding: 10px;
+}

@@ -1,20 +1,22 @@
 {% extends "base.html" %}
 {% block title %}Minha Assinatura{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/assinatura.css') }}">
+{% endblock %}
 
 {% block content %}
 <h1>Minha Assinatura</h1>
+<form action="{{ url_for('dashboard.minha_assinatura') }}" method="POST">
+  <label>Nome para assinatura</label>
+  <input name="assinatura_nome" value="{{ assinatura.nome }}">
 
-<form method="POST">
-    <label for="assinatura_nome">Nome da Assinatura:</label>
-    <input type="text" name="assinatura_nome" id="assinatura_nome" value="{{ assinatura.nome }}">
+  <label>Fonte</label>
+  <select name="assinatura_fonte">
+    <option value="Arial" {% if assinatura.fonte == 'Arial' %}selected{% endif %}>Arial</option>
+    <option value="Times" {% if assinatura.fonte == 'Times' %}selected{% endif %}>Times</option>
+    <option value="Cursive" {% if assinatura.fonte == 'Cursive' %}selected{% endif %}>Cursive</option>
+  </select>
 
-    <label for="assinatura_fonte">Fonte:</label>
-    <select name="assinatura_fonte" id="assinatura_fonte">
-        <option value="Arial" {% if assinatura.fonte=='Arial' %}selected{% endif %}>Arial</option>
-        <option value="Times New Roman" {% if assinatura.fonte=='Times New Roman' %}selected{% endif %}>Times New Roman</option>
-        <option value="Calibri" {% if assinatura.fonte=='Calibri' %}selected{% endif %}>Calibri</option>
-    </select>
-
-    <button type="submit" class="btn">Salvar Assinatura</button>
+  <button class="btn" type="submit">Salvar</button>
 </form>
 {% endblock %}

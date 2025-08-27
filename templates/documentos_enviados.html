@@ -1,27 +1,28 @@
 {% extends "base.html" %}
 {% block title %}Documentos Enviados{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/enviados.css') }}">
+{% endblock %}
 
 {% block content %}
 <h1>Documentos Enviados</h1>
 
-<!-- Upload de Documento -->
 <div class="upload-container" id="upload-container">
-    <p>Arraste o documento aqui ou clique no botão</p>
-    <input type="file" id="fileInput">
-    <button id="chooseFile">Escolher Arquivo</button>
+  <p>Arraste o documento aqui ou clique no botão</p>
+  <input type="file" id="fileInput">
+  <button id="chooseFile">Escolher Arquivo</button>
 </div>
 
-<!-- Lista de Documentos Enviados -->
 <h2>Últimos Documentos Enviados</h2>
 <div class="document-list">
-    {% for doc in documentos_enviados %}
+  {% for doc in documentos_enviados %}
     <div class="document-card">
-        <p><strong>{{ doc.nome }}</strong></p>
-        <p>Data: {{ doc.data_upload }}</p>
-        <button>Visualizar</button>
+      <p><strong>{{ doc.nome }}</strong></p>
+      <p>Data: {{ doc.data_upload }}</p>
+      <button>Visualizar</button>
     </div>
-    {% else %}
+  {% else %}
     <p>Nenhum documento enviado ainda.</p>
-    {% endfor %}
+  {% endfor %}
 </div>
 {% endblock %}

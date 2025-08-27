@@ -1,18 +1,24 @@
+# app/services/token_service.py
 from itsdangerous import URLSafeTimedSerializer
 from flask import current_app
 
-def generate_token(email):
-    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
-    return serializer.dumps(email, salt='email-confirmation-salt')
+def _get_serializer():
+    secret = current_app.config.get("SECRET_KEY") or current_app.config.get("SECRET")
+    salt = current_app.config.get("SECURITY_PASSWORD_SALT", "atestto-salt")
+    return URLSafeTimedSerializer(secret, salt=salt)
 
-def confirm_token(token, expiration=3600):
-    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+def generate_token(email: str) -> str:
+    s = _get_serializer()
+    return s.dumps(email)
+
+def confirm_token(token: str, expiration=3600) -> str | None:
+    """
+    Retorna o e-mail decodificado se token válido e dentro do tempo (segundos).
+    Caso contrário retorna None.
+    """
+    s = _get_serializer()
     try:
-        email = serializer.loads(
-            token,
-            salt='email-confirmation-salt',
-            max_age=expiration
-        )
-    except:
-        return False
-    return email
+        email = s.loads(token, max_age=expiration)
+        return email
+    except Exception:
+        return None
