@@ -1,28 +1,32 @@
 {% extends "base.html" %}
 {% block title %}Documentos Enviados{% endblock %}
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/enviados.css') }}">
-{% endblock %}
-
 {% block content %}
 <h1>Documentos Enviados</h1>
 
-<div class="upload-container" id="upload-container">
-  <p>Arraste o documento aqui ou clique no botão</p>
-  <input type="file" id="fileInput">
-  <button id="chooseFile">Escolher Arquivo</button>
+<div class="upload-container">
+    <form action="{{ url_for('dashboard.documentos_enviados') }}" method="post" enctype="multipart/form-data">
+        <!-- Título obrigatório para resolver erro do banco -->
+        <input type="text" name="titulo" placeholder="Título do documento" required>
+        
+        <!-- Nome do arquivo opcional -->
+        <input type="text" name="nome_documento" placeholder="Nome do documento (opcional)">
+        
+        <input type="email" name="destinatario_email" placeholder="E-mail do destinatário (opcional)">
+        <input type="file" name="file" required>
+        <button type="submit">Enviar</button>
+    </form>
 </div>
 
 <h2>Últimos Documentos Enviados</h2>
 <div class="document-list">
-  {% for doc in documentos_enviados %}
+    {% for doc in documentos_enviados %}
     <div class="document-card">
-      <p><strong>{{ doc.nome }}</strong></p>
-      <p>Data: {{ doc.data_upload }}</p>
-      <button>Visualizar</button>
+        <p><strong>{{ doc.titulo }}</strong> {% if doc.nome %}({{ doc.nome }}){% endif %}</p>
+        <p>Data: {{ doc.data_upload }}</p>
+        <a class="btn" href="{{ url_for('dashboard.visualizar_documento', documento_id=doc.id) }}" target="_blank">Visualizar</a>
     </div>
-  {% else %}
+    {% else %}
     <p>Nenhum documento enviado ainda.</p>
-  {% endfor %}
+    {% endfor %}
 </div>
 {% endblock %}

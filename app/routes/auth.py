@@ -3,12 +3,12 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 import pymysql
-import pymysql.cursors
-
+import os
+import requests
 from app.services.db import get_db
 from app.models.user import User
 
-# helpers (stubs se não existir implementação)
+# Helpers (stubs se não tiver implementação)
 try:
     from app.services.email_service import send_confirmation_email, send_reset_password_email
     from app.services.token_service import generate_token, confirm_token
@@ -20,6 +20,13 @@ except Exception:
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
 
+# Config Gov.br
+GOVBR_CLIENT_ID = os.getenv("GOVBR_CLIENT_ID")
+GOVBR_CLIENT_SECRET = os.getenv("GOVBR_CLIENT_SECRET")
+GOVBR_REDIRECT_URI = os.getenv("GOVBR_REDIRECT_URI", "http://localhost:5000/auth/callback_govbr_real")
+GOVBR_AUTH_URL = "https://sso.staging.acesso.gov.br/authorize"
+GOVBR_TOKEN_URL = "https://sso.staging.acesso.gov.br/token"
+GOVBR_USERINFO_URL = "https://sso.staging.acesso.gov.br/userinfo"
 
 # ----------------- LOGIN -----------------
 @bp.route("/login", methods=["GET", "POST"])
@@ -29,7 +36,7 @@ def login():
         senha = request.form.get("senha") or request.form.get("password") or ""
 
         conn = get_db()
-        cursor = conn.cursor()  # já é DictCursor pela connection
+        cursor = conn.cursor()
         try:
             cursor.execute("SELECT id, name, email, senha, confirmed FROM usuarios WHERE email=%s", (email,))
             row = cursor.fetchone()
@@ -41,17 +48,13 @@ def login():
             return render_template("login.html", current_user=current_user)
 
         stored = row.get("senha") or ""
-
-        # verifica hash ou plain-text (fallback) e faz upgrade se necessário
         password_ok = False
         try:
-            if stored.startswith("pbkdf2:") or stored.startswith("argon2:") or stored.startswith("scrypt:"):
+            if stored.startswith(("pbkdf2:", "argon2:", "scrypt:")):
                 password_ok = check_password_hash(stored, senha)
             else:
-                # fallback: senha em plain-text (temporário)
                 if stored == senha:
                     password_ok = True
-                    # tenta atualizar para hash (não fatal)
                     try:
                         new_hash = generate_password_hash(senha)
                         ucur = conn.cursor()
@@ -67,19 +70,16 @@ def login():
             flash("E-mail ou senha inválidos.", "danger")
             return render_template("login.html", current_user=current_user)
 
-        # se usar campo de confirmação
         if "confirmed" in row and row.get("confirmed") in (0, "0", None):
             flash("Por favor confirme seu e-mail antes de entrar.", "warning")
             return render_template("login.html", current_user=current_user)
 
         user = User(id=row["id"], nome=row.get("name"), email=row["email"])
         login_user(user)
-
         flash("Login realizado com sucesso!", "success")
         return redirect(url_for("dashboard.index"))
 
     return render_template("login.html", current_user=current_user)
-
 
 # ----------------- LOGOUT -----------------
 @bp.route("/logout")
@@ -88,7 +88,6 @@ def logout():
     logout_user()
     flash("Você saiu da conta.", "info")
     return redirect(url_for("auth.login"))
-
 
 # ----------------- REGISTER -----------------
 @bp.route("/register", methods=["GET", "POST"])
@@ -112,7 +111,6 @@ def register():
                 (nome, email, hashed, 0)
             )
             conn.commit()
-
             cursor.execute("SELECT id, name, email, confirmed FROM usuarios WHERE email=%s", (email,))
             user_row = cursor.fetchone()
         finally:
@@ -128,109 +126,41 @@ def register():
 
     return render_template("register.html", current_user=current_user)
 
-
-# ----------------- RESEND CONFIRMATION -----------------
-@bp.route("/resend_confirmation", methods=["GET", "POST"])
-def resend_confirmation():
-    if request.method == "POST":
-        email = request.form.get("email", "").strip()
-        conn = get_db()
-        cursor = conn.cursor()
-        try:
-            cursor.execute("SELECT id, name, email, confirmed FROM usuarios WHERE email=%s", (email,))
-            user_row = cursor.fetchone()
-        finally:
-            cursor.close()
-
-        if user_row and not user_row.get("confirmed"):
-            send_confirmation_email(user_row)
-            flash("E-mail de confirmação reenviado (verifique spam).", "success")
-        else:
-            flash("E-mail não encontrado ou já confirmado.", "warning")
-        return redirect(url_for("auth.login"))
-
-    return render_template("resend_confirmation.html", current_user=current_user)
-
-
-# ----------------- FORGOT / RESET -----------------
+# ----------------- FORGOT PASSWORD -----------------
 @bp.route("/forgot_password", methods=["GET", "POST"])
 def forgot_password():
     if request.method == "POST":
-        email = request.form.get("email", "").strip()
-        conn = get_db()
-        cursor = conn.cursor()
+        email = request.form.get("email")
+        token = generate_token(email)
         try:
-            cursor.execute("SELECT id, name, email FROM usuarios WHERE email=%s", (email,))
-            user_row = cursor.fetchone()
-        finally:
-            cursor.close()
-
-        if user_row:
-            send_reset_password_email(user_row)
-
-        flash("Se o e-mail estiver cadastrado, enviamos instruções para redefinir a senha.", "info")
+            send_reset_password_email({"email": email, "token": token})
+            flash("Link de recuperação enviado! Verifique seu e-mail.", "success")
+        except Exception:
+            flash("Erro ao enviar link de recuperação.", "danger")
         return redirect(url_for("auth.login"))
-
     return render_template("forgot_password.html", current_user=current_user)
 
-
-@bp.route("/reset_password/<token>", methods=["GET", "POST"])
-def reset_password(token):
-    email = confirm_token(token)
-    if not email:
-        flash("Link inválido ou expirado.", "danger")
-        return redirect(url_for("auth.forgot_password"))
-
-    if request.method == "POST":
-        senha = request.form.get("senha", "")
-        confirmar = request.form.get("confirmar_senha", "")
-        if senha != confirmar:
-            flash("As senhas não conferem.", "danger")
-            return render_template("reset_password.html", token=token, current_user=current_user)
-
-        hashed = generate_password_hash(senha)
-        conn = get_db()
-        cursor = conn.cursor()
-        try:
-            cursor.execute("UPDATE usuarios SET senha=%s WHERE email=%s", (hashed, email))
-            conn.commit()
-        finally:
-            cursor.close()
-
-        flash("Senha alterada com sucesso. Faça login.", "success")
-        return redirect(url_for("auth.login"))
-
-    return render_template("reset_password.html", token=token, current_user=current_user)
-
-
-# ----------------- CONFIRM -----------------
-@bp.route("/confirm/<token>")
-def confirm_email(token):
-    email = confirm_token(token)
-    if not email:
-        flash("Link inválido ou expirado.", "danger")
-        return redirect(url_for("auth.register"))
-
-    conn = get_db()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("UPDATE usuarios SET confirmed=1 WHERE email=%s", (email,))
-        conn.commit()
-    finally:
-        cursor.close()
-
-    flash("E-mail confirmado! Agora você pode entrar.", "success")
-    return redirect(url_for("auth.login"))
-
-
-# ----------------- GOV.BR SIM -----------------
+# ----------------- GOV.BR LOGIN -----------------
 @bp.route("/login_govbr")
 def login_govbr():
-    return redirect(url_for("auth.callback_govbr", email="usuario@gov.br"))
+    """Decide se usa simulação ou fluxo real Gov.br"""
+    if not GOVBR_CLIENT_ID or not GOVBR_CLIENT_SECRET:
+        # Simulação
+        return redirect(url_for("auth.callback_govbr", email="usuario@gov.br"))
 
+    # Fluxo real
+    auth_url = (
+        f"{GOVBR_AUTH_URL}?response_type=code"
+        f"&client_id={GOVBR_CLIENT_ID}"
+        f"&redirect_uri={GOVBR_REDIRECT_URI}"
+        f"&scope=openid+profile+email"
+    )
+    return redirect(auth_url)
 
+# ----------------- CALLBACK SIMULADO -----------------
 @bp.route("/callback_govbr")
 def callback_govbr():
+    """Callback Gov.br simulado"""
     email = request.args.get("email")
     if not email:
         flash("Falha ao autenticar com Gov.br.", "danger")
@@ -254,5 +184,61 @@ def callback_govbr():
 
     user = User(id=user_row["id"], nome=user_row.get("name"), email=user_row["email"])
     login_user(user)
-    flash("Autenticado via Gov.br!", "success")
+    flash("Autenticado via Gov.br (simulado)!", "success")
+    return redirect(url_for("dashboard.index"))
+
+# ----------------- CALLBACK REAL -----------------
+@bp.route("/callback_govbr_real")
+def callback_govbr_real():
+    """Callback Gov.br real"""
+    code = request.args.get("code")
+    if not code:
+        flash("Erro: não recebemos o código de autenticação do Gov.br.", "danger")
+        return redirect(url_for("auth.login"))
+
+    token_data = {
+        "grant_type": "authorization_code",
+        "code": code,
+        "redirect_uri": GOVBR_REDIRECT_URI,
+        "client_id": GOVBR_CLIENT_ID,
+        "client_secret": GOVBR_CLIENT_SECRET,
+    }
+    token_resp = requests.post(GOVBR_TOKEN_URL, data=token_data)
+    token_json = token_resp.json()
+    access_token = token_json.get("access_token")
+
+    if not access_token:
+        flash("Erro ao obter token do Gov.br.", "danger")
+        return redirect(url_for("auth.login"))
+
+    headers = {"Authorization": f"Bearer {access_token}"}
+    userinfo_resp = requests.get(GOVBR_USERINFO_URL, headers=headers)
+    userinfo = userinfo_resp.json()
+
+    email = userinfo.get("email")
+    nome = userinfo.get("name", "Usuário Gov.br")
+
+    if not email:
+        flash("Não foi possível obter o e-mail do Gov.br.", "danger")
+        return redirect(url_for("auth.login"))
+
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT id, name, email, confirmed FROM usuarios WHERE email=%s", (email,))
+        user_row = cursor.fetchone()
+        if not user_row:
+            cursor.execute(
+                "INSERT INTO usuarios (name, email, senha, confirmed) VALUES (%s,%s,%s,%s)",
+                (nome, email, generate_password_hash("govbr-temporario"), 1)
+            )
+            conn.commit()
+            cursor.execute("SELECT id, name, email, confirmed FROM usuarios WHERE email=%s", (email,))
+            user_row = cursor.fetchone()
+    finally:
+        cursor.close()
+
+    user = User(id=user_row["id"], nome=user_row.get("name"), email=user_row["email"])
+    login_user(user)
+    flash("Autenticado via Gov.br (real)!", "success")
     return redirect(url_for("dashboard.index"))

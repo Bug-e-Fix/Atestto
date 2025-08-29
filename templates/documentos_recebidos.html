@@ -1,21 +1,18 @@
 {% extends "base.html" %}
 {% block title %}Documentos Recebidos{% endblock %}
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/recebidos.css') }}">
-{% endblock %}
-
 {% block content %}
 <h1>Documentos Recebidos</h1>
+
 <div class="document-list">
-  {% for doc in documentos_recebidos %}
+    {% for doc in documentos_recebidos %}
     <div class="document-card" style="{% if doc.visualizado==0 %}border: 2px solid #1e3a8a;{% endif %}">
-      <p><strong>{{ doc.nome }}</strong></p>
-      <p>Data: {{ doc.data_upload }}</p>
-      <p>Status: {% if doc.visualizado %}Visualizado{% else %}Não visualizado{% endif %}</p>
-      <button>Visualizar</button>
+        <p><strong>{{ doc.nome }}</strong></p>
+        <p>Data: {{ doc.data_upload }}</p>
+        <p>Status: {% if doc.visualizado %}Visualizado{% else %}Não visualizado{% endif %}</p>
+        <a class="btn" href="{{ url_for('dashboard.visualizar_documento', doc_id=doc.id) }}" target="_blank">Visualizar</a>
     </div>
-  {% else %}
+    {% else %}
     <p>Nenhum documento recebido ainda.</p>
-  {% endfor %}
+    {% endfor %}
 </div>
 {% endblock %}

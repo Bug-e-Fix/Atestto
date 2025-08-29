@@ -1,111 +1,174 @@
 # app/routes/dashboard.py
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+import os
+from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
 from flask_login import login_required, current_user
 from app.services.db import get_db
+from datetime import datetime
 
 bp = Blueprint("dashboard", __name__, url_prefix="/dashboard")
 
-# DASHBOARD PRINCIPAL - mostra documentos recebidos não visualizados
+UPLOAD_FOLDER = "uploads"
+SIGNED_FOLDER = "signed"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(SIGNED_FOLDER, exist_ok=True)
+
+# ----------------- DASHBOARD INDEX -----------------
 @bp.route("/")
 @login_required
 def index():
-    conn = get_db()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("""
-            SELECT id, nome, data_upload, visualizado
-            FROM documentos
-            WHERE destinatario_email=%s AND (visualizado IS NULL OR visualizado=0)
-            ORDER BY data_upload DESC
-            LIMIT 5
-        """, (current_user.email,))
-        documentos = cursor.fetchall()
-    finally:
-        cursor.close()
-    return render_template("dashboard.html", current_user=current_user, documentos_recebidos=documentos)
+    return render_template("dashboard.html", current_user=current_user)
 
 
-# DOCUMENTOS ENVIADOS (somente listagem - formulário usa blueprint 'documentos' para POST)
-@bp.route("/enviados")
+# ----------------- DOCUMENTOS ENVIADOS -----------------
+@bp.route("/documentos/enviados", methods=["GET", "POST"])
 @login_required
 def documentos_enviados():
-    conn = get_db()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("""
-            SELECT id, nome, data_upload, visualizado
-            FROM documentos
-            WHERE id_usuario=%s
-            ORDER BY data_upload DESC
-            LIMIT 20
-        """, (current_user.id,))
-        documentos = cursor.fetchall()
-    finally:
-        cursor.close()
-    return render_template("documentos_enviados.html", current_user=current_user, documentos=documentos)
+    db = get_db()
+    cur = db.cursor()
+    
+    if request.method == "POST":
+        file = request.files.get("file")
+        nome_documento = request.form.get("nome_documento") or (file.filename if file else None)
+        destinatario = request.form.get("destinatario_email")
+
+        if not file:
+            flash("Nenhum arquivo selecionado.", "error")
+            return redirect(url_for("dashboard.documentos_enviados"))
+
+        filename = f"{current_user.id}_{file.filename.replace(' ', '_')}"
+        uploaded_file_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(uploaded_file_path)
+
+        # Salva no banco
+        cur.execute(
+            """
+            INSERT INTO documentos
+            (id_usuario, titulo, nome, conteudo, dados, destinatario_email, data_upload, visualizado, status)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                current_user.id,
+                nome_documento,  # título
+                nome_documento,
+                None,  # conteúdo textual opcional
+                uploaded_file_path,
+                destinatario or None,
+                datetime.utcnow(),
+                0,
+                "Enviado"
+            )
+        )
+        db.commit()
+        flash("Documento enviado com sucesso.", "success")
+        return redirect(url_for("dashboard.documentos_enviados"))
+
+    cur.execute(
+        "SELECT * FROM documentos WHERE id_usuario=%s ORDER BY data_upload DESC", 
+        (current_user.id,)
+    )
+    documentos_enviados = cur.fetchall()
+    cur.close()
+    return render_template("documentos_enviados.html", documentos_enviados=documentos_enviados)
 
 
-# DOCUMENTOS RECEBIDOS (tela completa)
-@bp.route("/recebidos")
+# ----------------- DOCUMENTOS RECEBIDOS -----------------
+@bp.route("/documentos/recebidos")
 @login_required
 def documentos_recebidos():
-    conn = get_db()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("""
-            SELECT id, nome, data_upload, visualizado
-            FROM documentos
-            WHERE destinatario_email=%s
-            ORDER BY data_upload DESC
-        """, (current_user.email,))
-        documentos = cursor.fetchall()
-    finally:
-        cursor.close()
-    return render_template("documentos_recebidos.html", current_user=current_user, documentos=documentos)
+    db = get_db()
+    cur = db.cursor()
+    cur.execute(
+        "SELECT * FROM documentos WHERE destinatario_email=%s ORDER BY data_upload DESC",
+        (current_user.email,)
+    )
+    documentos_recebidos = cur.fetchall()
+    cur.close()
+    return render_template("documentos_recebidos.html", documentos_recebidos=documentos_recebidos)
 
 
-# PERFIL - agora passa `user` como dict para o template
-@bp.route("/perfil")
+# ----------------- VISUALIZAR DOCUMENTO -----------------
+@bp.route("/documento/<int:doc_id>/visualizar")
 @login_required
-def perfil():
-    conn = get_db()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("SELECT id, name, email, cpf, assinatura_nome, assinatura_fonte FROM usuarios WHERE id=%s", (current_user.id,))
-        row = cursor.fetchone()
-    finally:
-        cursor.close()
-    # row é dict (por conta do DictCursor). Se for None, passa dict vazio.
-    return render_template("perfil.html", current_user=current_user, user=row or {})
+def visualizar_documento(doc_id):
+    db = get_db()
+    cur = db.cursor()
+    cur.execute(
+        "SELECT dados, nome FROM documentos WHERE id=%s AND id_usuario=%s",
+        (doc_id, current_user.id)
+    )
+    doc = cur.fetchone()
+    cur.close()
+
+    if not doc or not doc.get("dados"):
+        flash("Documento não encontrado.", "danger")
+        return redirect(url_for("dashboard.documentos_enviados"))
+
+    arquivo_path = doc["dados"]
+    if not os.path.exists(arquivo_path):
+        flash("Arquivo não encontrado no servidor.", "danger")
+        return redirect(url_for("dashboard.documentos_enviados"))
+
+    return send_file(
+        arquivo_path,
+        as_attachment=True,
+        download_name=doc.get("nome") or os.path.basename(arquivo_path)
+    )
 
 
-# MINHA ASSINATURA (rota sob 'dashboard' — template deve chamar url_for('dashboard.minha_assinatura'))
+# ----------------- MINHA ASSINATURA -----------------
 @bp.route("/assinatura", methods=["GET", "POST"])
 @login_required
 def minha_assinatura():
-    conn = get_db()
+    db = get_db()
+    cur = db.cursor()
+
     if request.method == "POST":
-        assinatura_nome = request.form.get("assinatura_nome", "").strip()
-        assinatura_fonte = request.form.get("assinatura_fonte", "Arial").strip()
-        cur = conn.cursor()
-        try:
-            cur.execute("UPDATE usuarios SET assinatura_nome=%s, assinatura_fonte=%s WHERE id=%s",
-                        (assinatura_nome, assinatura_fonte, current_user.id))
-            conn.commit()
-            flash("Assinatura salva.", "success")
-        finally:
-            cur.close()
+        assinatura = request.files.get("assinatura")
+        rubrica = request.files.get("rubrica")
+
+        if assinatura:
+            assinatura_path = os.path.join(SIGNED_FOLDER, f"{current_user.id}_assinatura.png")
+            assinatura.save(assinatura_path)
+            cur.execute(
+                "INSERT INTO assinaturas (id_usuario, assinatura_path) VALUES (%s, %s) "
+                "ON DUPLICATE KEY UPDATE assinatura_path=%s",
+                (current_user.id, assinatura_path, assinatura_path)
+            )
+
+        if rubrica:
+            rubrica_path = os.path.join(SIGNED_FOLDER, f"{current_user.id}_rubrica.png")
+            rubrica.save(rubrica_path)
+            cur.execute(
+                "INSERT INTO assinaturas (id_usuario, rubrica_path) VALUES (%s, %s) "
+                "ON DUPLICATE KEY UPDATE rubrica_path=%s",
+                (current_user.id, rubrica_path, rubrica_path)
+            )
+
+        db.commit()
+        flash("Assinatura e rubrica atualizadas com sucesso.", "success")
         return redirect(url_for("dashboard.minha_assinatura"))
 
-    cur = conn.cursor()
-    try:
-        cur.execute("SELECT assinatura_nome, assinatura_fonte FROM usuarios WHERE id=%s", (current_user.id,))
-        row = cur.fetchone()
-    finally:
-        cur.close()
+    cur.execute("SELECT * FROM assinaturas WHERE id_usuario=%s", (current_user.id,))
+    assinatura = cur.fetchone()
+    cur.close()
+    return render_template("minha_assinatura.html", assinatura=assinatura)
 
-    assinatura = {
-        "nome": row.get("assinatura_nome") if row else "",
-        "fonte": row.get("assinatura_fonte") if row else "Arial"
-    }
-    return render_template("minha_assinatura.html", current_user=current_user, assinatura=assinatura)
+
+# ----------------- PERFIL -----------------
+@bp.route("/perfil", methods=["GET", "POST"])
+@login_required
+def perfil():
+    db = get_db()
+    cur = db.cursor()
+
+    if request.method == "POST":
+        nome = request.form.get("nome", "").strip()
+        cur.execute("UPDATE usuarios SET name=%s WHERE id=%s", (nome, current_user.id))
+        db.commit()
+        flash("Perfil atualizado com sucesso.", "success")
+        return redirect(url_for("dashboard.perfil"))
+
+    cur.execute("SELECT * FROM usuarios WHERE id=%s", (current_user.id,))
+    usuario = cur.fetchone()
+    cur.close()
+    return render_template("perfil.html", usuario=usuario)
