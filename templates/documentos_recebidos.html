@@ -1,18 +1,35 @@
 {% extends "base.html" %}
 {% block title %}Documentos Recebidos{% endblock %}
+
 {% block content %}
 <h1>Documentos Recebidos</h1>
 
 <div class="document-list">
-    {% for doc in documentos_recebidos %}
-    <div class="document-card" style="{% if doc.visualizado==0 %}border: 2px solid #1e3a8a;{% endif %}">
-        <p><strong>{{ doc.nome }}</strong></p>
-        <p>Data: {{ doc.data_upload }}</p>
-        <p>Status: {% if doc.visualizado %}Visualizado{% else %}Não visualizado{% endif %}</p>
-        <a class="btn" href="{{ url_for('dashboard.visualizar_documento', doc_id=doc.id) }}" target="_blank">Visualizar</a>
-    </div>
-    {% else %}
+  {% if documentos_recebidos %}
+    <table>
+      <thead>
+        <tr>
+          <th>Título</th>
+          <th>Nome do Arquivo</th>
+          <th>Data de Upload</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for doc in documentos_recebidos %}
+        <tr>
+          <td>{{ doc.titulo }}</td>
+          <td>{% if doc.nome %}{{ doc.nome }}{% else %}—{% endif %}</td>
+          <td>{{ doc.data_upload }}</td>
+          <td>
+            <a class="btn" href="{{ url_for('dashboard.visualizar_documento', doc_id=doc.id) }}" target="_blank">Visualizar</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
     <p>Nenhum documento recebido ainda.</p>
-    {% endfor %}
+  {% endif %}
 </div>
 {% endblock %}

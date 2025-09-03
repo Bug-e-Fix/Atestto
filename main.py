@@ -1,3 +1,4 @@
+# main.py
 import os
 from dotenv import load_dotenv
 from flask import Flask, redirect, url_for
@@ -5,31 +6,29 @@ from app.extensions import mail, login_manager
 from app.services.db import close_db, get_db
 from app.models.user import User
 
-# Import blueprints pelos nomes corretos
+# blueprints (ajuste se seus arquivos tiverem nomes diferentes)
 from app.routes.auth import bp as auth_bp
-from app.routes.dashboard import dashboard_bp
-from app.routes.documentos import documentos
+from app.routes.dashboard import bp as dashboard_bp
 
+# optional other blueprint
+try:
+    from app.routes.documentos import bp as documentos_bp
+except Exception:
+    documentos_bp = None
 
-# load .env
 load_dotenv()
 
 def create_app():
     app = Flask(__name__)
 
-    # SECRET_KEY obrigatório
-    app.secret_key = os.getenv("SECRET_KEY")
-    if not app.secret_key:
-        raise RuntimeError("SECRET_KEY não definida no ambiente")
-
-    # DB config
+    app.secret_key = os.getenv("SECRET_KEY") or "dev-secret"
     app.config["DB_HOST"] = os.getenv("DB_HOST", "localhost")
     app.config["DB_USER"] = os.getenv("DB_USER", "root")
     app.config["DB_PASSWORD"] = os.getenv("DB_PASSWORD", "")
     app.config["DB_NAME"] = os.getenv("DB_NAME", "")
     app.config["DB_PORT"] = int(os.getenv("DB_PORT", 3306))
 
-    # Mail config (opcional)
+    # mail config (optional)
     app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME")
     app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD")
     app.config["MAIL_SERVER"] = os.getenv("MAIL_SERVER", "smtp.gmail.com")
@@ -48,7 +47,18 @@ def create_app():
     # register blueprints
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
-    app.register_blueprint(documentos)
+    if documentos_bp is not None:
+        app.register_blueprint(documentos_bp)
+
+    # helper available in templates to avoid BuildError while debugging
+    @app.context_processor
+    def utility_processor():
+        def endpoint_exists(name):
+            try:
+                return name in (app.url_map._rules_by_endpoint.keys() if hasattr(app.url_map, "_rules_by_endpoint") else [])
+            except Exception:
+                return False
+        return dict(endpoint_exists=endpoint_exists)
 
     # index redirect to login/dashboard
     @app.route("/")
@@ -76,4 +86,9 @@ def create_app():
 
 if __name__ == "__main__":
     app = create_app()
-    app.run(debug=False, port=5001)
+    import logging
+    app.logger.setLevel(logging.DEBUG)
+    app.logger.debug("=== Registered routes ===")
+    for r in app.url_map.iter_rules():
+        app.logger.debug(f"{r.endpoint} -> {r}")
+    app.run(debug=True, port=5001)

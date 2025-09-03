@@ -6,11 +6,12 @@
 
 {% block content %}
 <h1>Meu Perfil</h1>
-<h2>Perfil de {{ user.get('name') or user.get('nome') or current_user.nome or current_user.email }}</h2>
 
-<p><strong>Nome:</strong> {{ user.get('name') or user.get('nome') or current_user.nome }}</p>
-<p><strong>E-mail:</strong> {{ user.get('email') or current_user.email }}</p>
-<p><strong>CPF:</strong> {{ user.get('cpf') or '—' }}</p>
+<h2>Perfil de {{ usuario.get('name') or usuario.get('nome') or current_user.nome or current_user.email }}</h2>
+
+<p><strong>Nome:</strong> {{ usuario.get('name') or usuario.get('nome') or current_user.nome }}</p>
+<p><strong>E-mail:</strong> {{ usuario.get('email') or current_user.email }}</p>
+<p><strong>CPF:</strong> {{ usuario.get('cpf') or '—' }}</p>
 
 <a class="btn" href="{{ url_for('dashboard.minha_assinatura') }}">Editar Assinatura</a>
 {% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Visualizar Documento{% endblock %}
+
+{% block content %}
+<h1>{{ documento.nome or documento.titulo }}</h1>
+<p>Enviado por: {{ documento.id_usuario }}</p>
+<p>Data: {{ documento.data_upload }}</p>
+
+<iframe src="{{ url_for('dashboard.ver_pdf', doc_id=documento.id) }}" width="100%" height="800px"></iframe>
+
+<p style="margin-top:12px;">
+  <a class="btn" href="{{ url_for('dashboard.ver_pdf', doc_id=documento.id) }}" target="_blank">Abrir em nova aba</a>
+  {% if documento.id_usuario == current_user.id %}
+    <form action="{{ url_for('dashboard.cancelar_envio', doc_id=documento.id) }}" method="post" style="display:inline">
+      <button class="btn btn-ghost" type="submit">Cancelar envio</button>
+    </form>
+  {% endif %}
+</p>
+{% endblock %}

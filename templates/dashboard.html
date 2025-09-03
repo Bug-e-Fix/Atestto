@@ -9,7 +9,8 @@
 
 <section class="upload-card">
   <h2>Enviar documento</h2>
-  <form action="{{ url_for('documentos.enviados') }}" method="post" enctype="multipart/form-data">
+  <form action="{{ url_for('dashboard.documentos_enviados') }}" method="post" enctype="multipart/form-data">
+    <input type="text" name="titulo" placeholder="Título do documento" required>
     <input type="text" name="nome_documento" placeholder="Nome do documento (opcional)">
     <input type="email" name="destinatario_email" placeholder="E-mail do destinatário (opcional)">
     <div class="drop-area">
@@ -27,9 +28,9 @@
     {% if documentos_recebidos %}
       {% for doc in documentos_recebidos %}
         <div class="document-card">
-          <p><strong>{{ doc.nome }}</strong></p>
+          <p><strong>{{ doc.titulo or doc.nome }}</strong></p>
           <p>Data: {{ doc.data_upload }}</p>
-          <a class="btn" href="{{ url_for('dashboard.documentos_recebidos') }}">Visualizar</a>
+          <a class="btn" href="{{ url_for('dashboard.visualizar_documento', doc_id=doc.id) }}">Visualizar</a>
         </div>
       {% endfor %}
     {% else %}

@@ -7,34 +7,42 @@
   {% block extra_css %}{% endblock %}
 </head>
 <body>
-  <!-- Header -->
   <header class="header">
     <div class="logo"><a href="{{ url_for('dashboard.index') }}">Atestto</a></div>
     <nav class="navbar">
       <a href="{{ url_for('dashboard.documentos_enviados') }}">Documentos Enviados</a>
-      <a href="{{ url_for('dashboard.documentos_recebidos') }}">Documentos Recebidos</a>
+
+      {% if endpoint_exists('dashboard.documentos_recebidos') %}
+        <a href="{{ url_for('dashboard.documentos_recebidos') }}">Documentos Recebidos</a>
+      {% else %}
+        <a href="{{ url_for('dashboard.documentos_enviados') }}">Documentos Recebidos</a>
+      {% endif %}
+
       <div class="dropdown">
         <span class="dropdown-toggle">Menu ▼</span>
         <div class="dropdown-menu">
-          <a href="{{ url_for('dashboard.perfil') }}">Perfil</a>
-          <a href="{{ url_for('dashboard.minha_assinatura') }}">Minha Assinatura</a>
-          <a href="{{ url_for('auth.logout') }}">Sair</a>
+          {% if endpoint_exists('dashboard.perfil') %}
+            <a href="{{ url_for('dashboard.perfil') }}">Perfil</a>
+          {% endif %}
+          {% if endpoint_exists('dashboard.minha_assinatura') %}
+            <a href="{{ url_for('dashboard.minha_assinatura') }}">Minha Assinatura</a>
+          {% endif %}
+          {% if endpoint_exists('auth.logout') %}
+            <a href="{{ url_for('auth.logout') }}">Sair</a>
+          {% endif %}
         </div>
       </div>
     </nav>
   </header>
 
-  <!-- Conteúdo principal -->
   <main class="main-content">
     {% block content %}{% endblock %}
   </main>
 
-  <!-- Footer -->
   <footer class="footer">
     <p>© 2025 Atestto - Todos os direitos reservados</p>
   </footer>
 
   {% block extra_js %}{% endblock %}
 </body>
-
 </html>

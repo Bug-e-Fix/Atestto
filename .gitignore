@@ -8,6 +8,7 @@ __pycache__/
 # Ignorar arquivo de variáveis de ambiente
 .txt
 .key
+.env
 # Ignorar pastas temporárias e caches
 *.log
 *.tmp

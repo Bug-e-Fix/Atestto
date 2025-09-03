@@ -1,16 +1,13 @@
 {% extends "base.html" %}
 {% block title %}Documentos Enviados{% endblock %}
+
 {% block content %}
 <h1>Documentos Enviados</h1>
 
 <div class="upload-container">
     <form action="{{ url_for('dashboard.documentos_enviados') }}" method="post" enctype="multipart/form-data">
-        <!-- Título obrigatório para resolver erro do banco -->
         <input type="text" name="titulo" placeholder="Título do documento" required>
-        
-        <!-- Nome do arquivo opcional -->
         <input type="text" name="nome_documento" placeholder="Nome do documento (opcional)">
-        
         <input type="email" name="destinatario_email" placeholder="E-mail do destinatário (opcional)">
         <input type="file" name="file" required>
         <button type="submit">Enviar</button>
@@ -19,14 +16,16 @@
 
 <h2>Últimos Documentos Enviados</h2>
 <div class="document-list">
-    {% for doc in documentos_enviados %}
-    <div class="document-card">
-        <p><strong>{{ doc.titulo }}</strong> {% if doc.nome %}({{ doc.nome }}){% endif %}</p>
-        <p>Data: {{ doc.data_upload }}</p>
-        <a class="btn" href="{{ url_for('dashboard.visualizar_documento', documento_id=doc.id) }}" target="_blank">Visualizar</a>
-    </div>
+    {% if documentos_enviados %}
+        {% for doc in documentos_enviados %}
+        <div class="document-card">
+            <p><strong>{{ doc.titulo }}</strong> {% if doc.nome %}({{ doc.nome }}){% endif %}</p>
+            <p>Data: {{ doc.data_upload }}</p>
+            <a class="btn" href="{{ url_for('dashboard.visualizar_documento', doc_id=doc.id) }}" target="_blank">Visualizar</a>
+        </div>
+        {% endfor %}
     {% else %}
-    <p>Nenhum documento enviado ainda.</p>
-    {% endfor %}
+        <p>Nenhum documento enviado ainda.</p>
+    {% endif %}
 </div>
 {% endblock %}
