@@ -1,8 +1,7 @@
 # app/routes/auth.py
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-import pymysql
 import os
 import requests
 from app.services.db import get_db
@@ -20,13 +19,14 @@ except Exception:
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
 
-# Config Gov.br
+# Config Gov.br (mantive como você já tinha)
 GOVBR_CLIENT_ID = os.getenv("GOVBR_CLIENT_ID")
 GOVBR_CLIENT_SECRET = os.getenv("GOVBR_CLIENT_SECRET")
 GOVBR_REDIRECT_URI = os.getenv("GOVBR_REDIRECT_URI", "http://localhost:5000/auth/callback_govbr_real")
 GOVBR_AUTH_URL = "https://sso.staging.acesso.gov.br/authorize"
 GOVBR_TOKEN_URL = "https://sso.staging.acesso.gov.br/token"
 GOVBR_USERINFO_URL = "https://sso.staging.acesso.gov.br/userinfo"
+
 
 # ----------------- LOGIN -----------------
 @bp.route("/login", methods=["GET", "POST"])
@@ -76,18 +76,21 @@ def login():
 
         user = User(id=row["id"], nome=row.get("name"), email=row["email"])
         login_user(user)
-        flash("Login realizado com sucesso!", "success")
-        return redirect(url_for("dashboard.index"))
+
+        # Redirect com query param notice em vez de flash
+        return redirect(url_for("dashboard.index", notice="login_success"))
 
     return render_template("login.html", current_user=current_user)
+
 
 # ----------------- LOGOUT -----------------
 @bp.route("/logout")
 @login_required
 def logout():
     logout_user()
-    flash("Você saiu da conta.", "info")
-    return redirect(url_for("auth.login"))
+    # utilizar notice para mostrar via JS na página de login (opcional)
+    return redirect(url_for("auth.login", notice="logout_success"))
+
 
 # ----------------- REGISTER -----------------
 @bp.route("/register", methods=["GET", "POST"])
@@ -121,10 +124,11 @@ def register():
         except Exception:
             pass
 
-        flash("Cadastro realizado! Verifique seu e-mail para confirmar a conta.", "success")
-        return redirect(url_for("auth.login"))
+        # redirecionar para a página de login com aviso via JS
+        return redirect(url_for("auth.login", notice="register_success"))
 
     return render_template("register.html", current_user=current_user)
+
 
 # ----------------- FORGOT PASSWORD -----------------
 @bp.route("/forgot_password", methods=["GET", "POST"])
@@ -134,11 +138,13 @@ def forgot_password():
         token = generate_token(email)
         try:
             send_reset_password_email({"email": email, "token": token})
-            flash("Link de recuperação enviado! Verifique seu e-mail.", "success")
+            # redireciona para login com notice para mostrar via JS
+            return redirect(url_for("auth.login", notice="reset_sent"))
         except Exception:
             flash("Erro ao enviar link de recuperação.", "danger")
-        return redirect(url_for("auth.login"))
+            return redirect(url_for("auth.login"))
     return render_template("forgot_password.html", current_user=current_user)
+
 
 # ----------------- GOV.BR LOGIN -----------------
 @bp.route("/login_govbr")
@@ -156,6 +162,7 @@ def login_govbr():
         f"&scope=openid+profile+email"
     )
     return redirect(auth_url)
+
 
 # ----------------- CALLBACK SIMULADO -----------------
 @bp.route("/callback_govbr")
@@ -184,8 +191,8 @@ def callback_govbr():
 
     user = User(id=user_row["id"], nome=user_row.get("name"), email=user_row["email"])
     login_user(user)
-    flash("Autenticado via Gov.br (simulado)!", "success")
-    return redirect(url_for("dashboard.index"))
+    return redirect(url_for("dashboard.index", notice="govbr_simulado_success"))
+
 
 # ----------------- CALLBACK REAL -----------------
 @bp.route("/callback_govbr_real")
@@ -240,5 +247,4 @@ def callback_govbr_real():
 
     user = User(id=user_row["id"], nome=user_row.get("name"), email=user_row["email"])
     login_user(user)
-    flash("Autenticado via Gov.br (real)!", "success")
-    return redirect(url_for("dashboard.index"))
+    return redirect(url_for("dashboard.index", notice="govbr_success"))

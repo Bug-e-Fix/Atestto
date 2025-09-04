@@ -4,45 +4,130 @@
   <meta charset="utf-8">
   <title>{% block title %}Atestto{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+  <style>
+    /* Estilo simples de toast (coloque no base.css se preferir) */
+    .toast {
+      position: fixed;
+      right: 20px;
+      top: 20px;
+      min-width: 220px;
+      max-width: 420px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+      color: #fff;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      z-index: 1050;
+      opacity: 0;
+      transform: translateY(-6px);
+      transition: opacity .25s ease, transform .25s ease;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { background: linear-gradient(90deg,#10b981,#059669); } /* verde */
+    .toast.info    { background: linear-gradient(90deg,#3b82f6,#2563eb); } /* azul */
+    .toast.warning { background: linear-gradient(90deg,#f59e0b,#f97316); } /* amarelo */
+    .toast.danger  { background: linear-gradient(90deg,#ef4444,#dc2626); } /* vermelho */
+    .toast .close {
+      float: right;
+      margin-left: 10px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      font-weight:700;
+    }
+  </style>
   {% block extra_css %}{% endblock %}
 </head>
 <body>
+  <!-- Header -->
   <header class="header">
     <div class="logo"><a href="{{ url_for('dashboard.index') }}">Atestto</a></div>
     <nav class="navbar">
       <a href="{{ url_for('dashboard.documentos_enviados') }}">Documentos Enviados</a>
-
-      {% if endpoint_exists('dashboard.documentos_recebidos') %}
-        <a href="{{ url_for('dashboard.documentos_recebidos') }}">Documentos Recebidos</a>
-      {% else %}
-        <a href="{{ url_for('dashboard.documentos_enviados') }}">Documentos Recebidos</a>
-      {% endif %}
-
+      <a href="{{ url_for('dashboard.documentos_recebidos') }}">Documentos Recebidos</a>
       <div class="dropdown">
         <span class="dropdown-toggle">Menu ▼</span>
         <div class="dropdown-menu">
-          {% if endpoint_exists('dashboard.perfil') %}
-            <a href="{{ url_for('dashboard.perfil') }}">Perfil</a>
-          {% endif %}
-          {% if endpoint_exists('dashboard.minha_assinatura') %}
-            <a href="{{ url_for('dashboard.minha_assinatura') }}">Minha Assinatura</a>
-          {% endif %}
-          {% if endpoint_exists('auth.logout') %}
-            <a href="{{ url_for('auth.logout') }}">Sair</a>
-          {% endif %}
+          <a href="{{ url_for('dashboard.perfil') }}">Perfil</a>
+          <a href="{{ url_for('dashboard.minha_assinatura') }}">Minha Assinatura</a>
+          <a href="{{ url_for('auth.logout') }}">Sair</a>
         </div>
       </div>
     </nav>
   </header>
 
+  <!-- Mensagens flash do servidor (erros/avisos existentes) -->
+  <div class="flash-server" style="padding:10px;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="server-alert server-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- Conteúdo principal -->
   <main class="main-content">
     {% block content %}{% endblock %}
   </main>
 
+  <!-- Footer -->
   <footer class="footer">
     <p>© 2025 Atestto - Todos os direitos reservados</p>
   </footer>
 
   {% block extra_js %}{% endblock %}
+
+  <!-- Toast JS: lê ?notice=... e mostra mensagem correspondente -->
+  <script>
+    (function() {
+      // Mapeie chaves -> {text, category}
+      const NOTICE_MAP = {
+        "login_success": { text: "Login realizado com sucesso!", category: "success" },
+        "register_success": { text: "Cadastro realizado! Verifique seu e-mail para confirmar a conta.", category: "success" },
+        "logout_success": { text: "Você saiu da conta.", category: "info" },
+        "reset_sent": { text: "Link de recuperação enviado! Verifique seu e-mail.", category: "success" },
+        "govbr_simulado_success": { text: "Autenticado via Gov.br (simulado)!", category: "success" },
+        "govbr_success": { text: "Autenticado via Gov.br!", category: "success" }
+      };
+
+      function showToast(msg, category, timeout = 4000) {
+        const t = document.createElement('div');
+        t.className = 'toast ' + (category || 'info');
+        t.innerHTML = `<span style="font-weight:600">${msg}</span><span class="close" title="Fechar">×</span>`;
+        document.body.appendChild(t);
+        // show animation
+        requestAnimationFrame(() => t.classList.add('show'));
+        // close on click X
+        t.querySelector('.close').addEventListener('click', () => {
+          t.classList.remove('show');
+          setTimeout(() => t.remove(), 300);
+        });
+        // auto remove
+        setTimeout(() => {
+          t.classList.remove('show');
+          setTimeout(() => { if (t.parentNode) t.remove(); }, 300);
+        }, timeout);
+      }
+
+      // lê query string
+      const params = new URLSearchParams(window.location.search);
+      const notice = params.get('notice');
+      if (notice && NOTICE_MAP[notice]) {
+        const entry = NOTICE_MAP[notice];
+        showToast(entry.text, entry.category);
+        // remove o param notice da URL sem recarregar
+        params.delete('notice');
+        const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '') + window.location.hash;
+        window.history.replaceState({}, '', newUrl);
+      }
+    })();
+  </script>
 </body>
 </html>
