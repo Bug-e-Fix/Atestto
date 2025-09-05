@@ -1,5 +1,5 @@
 # app/routes/auth.py
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from flask import Blueprint, render_template, request, redirect, url_for, session
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
@@ -19,7 +19,7 @@ except Exception:
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
 
-# Config Gov.br (mantive como você já tinha)
+# Config Gov.br
 GOVBR_CLIENT_ID = os.getenv("GOVBR_CLIENT_ID")
 GOVBR_CLIENT_SECRET = os.getenv("GOVBR_CLIENT_SECRET")
 GOVBR_REDIRECT_URI = os.getenv("GOVBR_REDIRECT_URI", "http://localhost:5000/auth/callback_govbr_real")
@@ -44,8 +44,7 @@ def login():
             cursor.close()
 
         if not row:
-            flash("E-mail ou senha inválidos.", "danger")
-            return render_template("login.html", current_user=current_user)
+            return redirect(url_for("auth.login", notice="E-mail ou senha inválidos."))
 
         stored = row.get("senha") or ""
         password_ok = False
@@ -67,17 +66,14 @@ def login():
             password_ok = False
 
         if not password_ok:
-            flash("E-mail ou senha inválidos.", "danger")
-            return render_template("login.html", current_user=current_user)
+            return redirect(url_for("auth.login", notice="E-mail ou senha inválidos."))
 
         if "confirmed" in row and row.get("confirmed") in (0, "0", None):
-            flash("Por favor confirme seu e-mail antes de entrar.", "warning")
-            return render_template("login.html", current_user=current_user)
+            return redirect(url_for("auth.login", notice="Por favor confirme seu e-mail antes de entrar."))
 
         user = User(id=row["id"], nome=row.get("name"), email=row["email"])
         login_user(user)
 
-        # Redirect com query param notice em vez de flash
         return redirect(url_for("dashboard.index", notice="login_success"))
 
     return render_template("login.html", current_user=current_user)
@@ -88,7 +84,6 @@ def login():
 @login_required
 def logout():
     logout_user()
-    # utilizar notice para mostrar via JS na página de login (opcional)
     return redirect(url_for("auth.login", notice="logout_success"))
 
 
@@ -105,8 +100,7 @@ def register():
         try:
             cursor.execute("SELECT id FROM usuarios WHERE email=%s", (email,))
             if cursor.fetchone():
-                flash("E-mail já cadastrado.", "warning")
-                return redirect(url_for("auth.register"))
+                return redirect(url_for("auth.register", notice="E-mail já cadastrado."))
 
             hashed = generate_password_hash(senha)
             cursor.execute(
@@ -124,7 +118,6 @@ def register():
         except Exception:
             pass
 
-        # redirecionar para a página de login com aviso via JS
         return redirect(url_for("auth.login", notice="register_success"))
 
     return render_template("register.html", current_user=current_user)
@@ -138,23 +131,18 @@ def forgot_password():
         token = generate_token(email)
         try:
             send_reset_password_email({"email": email, "token": token})
-            # redireciona para login com notice para mostrar via JS
             return redirect(url_for("auth.login", notice="reset_sent"))
         except Exception:
-            flash("Erro ao enviar link de recuperação.", "danger")
-            return redirect(url_for("auth.login"))
+            return redirect(url_for("auth.login", notice="Erro ao enviar link de recuperação."))
     return render_template("forgot_password.html", current_user=current_user)
 
 
 # ----------------- GOV.BR LOGIN -----------------
 @bp.route("/login_govbr")
 def login_govbr():
-    """Decide se usa simulação ou fluxo real Gov.br"""
     if not GOVBR_CLIENT_ID or not GOVBR_CLIENT_SECRET:
-        # Simulação
         return redirect(url_for("auth.callback_govbr", email="usuario@gov.br"))
 
-    # Fluxo real
     auth_url = (
         f"{GOVBR_AUTH_URL}?response_type=code"
         f"&client_id={GOVBR_CLIENT_ID}"
@@ -167,11 +155,9 @@ def login_govbr():
 # ----------------- CALLBACK SIMULADO -----------------
 @bp.route("/callback_govbr")
 def callback_govbr():
-    """Callback Gov.br simulado"""
     email = request.args.get("email")
     if not email:
-        flash("Falha ao autenticar com Gov.br.", "danger")
-        return redirect(url_for("auth.login"))
+        return redirect(url_for("auth.login", notice="Falha ao autenticar com Gov.br."))
 
     conn = get_db()
     cursor = conn.cursor()
@@ -197,11 +183,9 @@ def callback_govbr():
 # ----------------- CALLBACK REAL -----------------
 @bp.route("/callback_govbr_real")
 def callback_govbr_real():
-    """Callback Gov.br real"""
     code = request.args.get("code")
     if not code:
-        flash("Erro: não recebemos o código de autenticação do Gov.br.", "danger")
-        return redirect(url_for("auth.login"))
+        return redirect(url_for("auth.login", notice="Erro: não recebemos o código de autenticação do Gov.br."))
 
     token_data = {
         "grant_type": "authorization_code",
@@ -215,8 +199,7 @@ def callback_govbr_real():
     access_token = token_json.get("access_token")
 
     if not access_token:
-        flash("Erro ao obter token do Gov.br.", "danger")
-        return redirect(url_for("auth.login"))
+        return redirect(url_for("auth.login", notice="Erro ao obter token do Gov.br."))
 
     headers = {"Authorization": f"Bearer {access_token}"}
     userinfo_resp = requests.get(GOVBR_USERINFO_URL, headers=headers)
@@ -226,8 +209,7 @@ def callback_govbr_real():
     nome = userinfo.get("name", "Usuário Gov.br")
 
     if not email:
-        flash("Não foi possível obter o e-mail do Gov.br.", "danger")
-        return redirect(url_for("auth.login"))
+        return redirect(url_for("auth.login", notice="Não foi possível obter o e-mail do Gov.br."))
 
     conn = get_db()
     cursor = conn.cursor()

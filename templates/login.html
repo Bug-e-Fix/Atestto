@@ -5,6 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Atestto</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+    <style>
+        /* Toast */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            margin-left: -125px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 4px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1000;
+            left: 50%;
+            top: 30px;
+            font-size: 16px;
+        }
+        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+        #toast.success { background-color: #4CAF50; }
+        #toast.error { background-color: #f44336; }
+        #toast.info { background-color: #2196F3; }
+        @keyframes fadein { from {top:0; opacity:0;} to {top:30px; opacity:1;} }
+        @keyframes fadeout { from {top:30px; opacity:1;} to {top:0; opacity:0;} }
+    </style>
 </head>
 <body>
     <div class="login-container">
@@ -14,14 +38,13 @@
             <input type="email" id="email" name="email" placeholder="Digite seu e-mail" required>
 
             <label for="password">Senha</label>
-            <input type="password" id="password" name="password" placeholder="Digite sua senha" required>
+            <input type="password" id="password" name="senha" placeholder="Digite sua senha" required>
 
             <button type="submit">Entrar</button>
         </form>
 
         <div class="divider">ou</div>
 
-        <!-- Botão Gov.br -->
         <a href="{{ url_for('auth.login_govbr') }}" class="govbr-btn">
             <img src="{{ url_for('static', filename='img/govbr_logo.png') }}" alt="Gov.br">
             Entrar com Gov.br
@@ -32,5 +55,56 @@
             <a href="{{ url_for('auth.forgot_password') }}">Esqueci minha senha</a>
         </div>
     </div>
+
+    <!-- Toast -->
+    <div id="toast"></div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const notice = urlParams.get("notice");
+            if (!notice) return;
+
+            const toast = document.getElementById("toast");
+            let message = "";
+            let type = "info";
+
+            switch(notice){
+                case "login_success":
+                    message = "Login realizado com sucesso!";
+                    type = "success";
+                    break;
+                case "logout_success":
+                    message = "Você saiu da conta com sucesso.";
+                    type = "info";
+                    break;
+                case "register_success":
+                    message = "Cadastro realizado com sucesso! Confirme seu e-mail.";
+                    type = "success";
+                    break;
+                case "govbr_simulado_success":
+                    message = "Login Gov.br (simulado) realizado com sucesso!";
+                    type = "success";
+                    break;
+                case "govbr_success":
+                    message = "Login Gov.br realizado com sucesso!";
+                    type = "success";
+                    break;
+                default:
+                    message = notice;
+                    type = "info";
+            }
+
+            toast.textContent = message;
+            toast.className = "show " + type;
+
+            setTimeout(() => {
+                toast.className = toast.className.replace("show", "");
+                const url = new URL(window.location);
+                url.searchParams.delete("notice");
+                window.history.replaceState({}, document.title, url);
+            }, 3000);
+        });
+    </script>
 </body>
 </html>

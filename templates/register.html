@@ -2,23 +2,42 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro - Atestto</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
+    <style>
+        /* Toast simples */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            margin-left: -125px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            z-index: 1000;
+            font-size: 16px;
+            opacity: 0;
+            transition: opacity 0.5s, top 0.5s;
+        }
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+            top: 50px;
+        }
+        #toast.success { background-color: #4CAF50; }
+        #toast.info { background-color: #2196F3; }
+        #toast.warning { background-color: #ff9800; }
+        #toast.error { background-color: #f44336; }
+    </style>
 </head>
 <body>
     <div class="register-container">
         <h2>Crie sua conta</h2>
-
-        <!-- Exibe mensagens do Flask -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            <ul class="flashes">
-              {% for category, message in messages %}
-                <li class="{{ category }}">{{ message }}</li>
-              {% endfor %}
-            </ul>
-          {% endif %}
-        {% endwith %}
 
         <form method="POST" action="{{ url_for('auth.register') }}">
             <label for="nome">Nome</label>
@@ -35,5 +54,64 @@
 
         <p>Já tem conta? <a href="{{ url_for('auth.login') }}">Faça login</a></p>
     </div>
+
+    <!-- Toast container -->
+    <div id="toast"></div>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const params = new URLSearchParams(window.location.search);
+        const notice = params.get("notice");
+
+        if (notice) {
+            const toast = document.getElementById("toast");
+            let message = "";
+            let type = "info";
+
+            switch(notice) {
+                case "register_success":
+                    message = "Cadastro realizado! Verifique seu e-mail para confirmação.";
+                    type = "success";
+                    break;
+                case "login_success":
+                    message = "Login realizado com sucesso!";
+                    type = "success";
+                    break;
+                case "logout_success":
+                    message = "Você saiu da conta com sucesso.";
+                    type = "info";
+                    break;
+                case "reset_sent":
+                    message = "Link de recuperação enviado para seu e-mail.";
+                    type = "info";
+                    break;
+                case "govbr_simulado_success":
+                    message = "Login Gov.br (simulado) realizado com sucesso!";
+                    type = "success";
+                    break;
+                case "govbr_success":
+                    message = "Login Gov.br realizado com sucesso!";
+                    type = "success";
+                    break;
+                default:
+                    message = "Aviso: " + notice;
+                    type = "info";
+            }
+
+            toast.textContent = message;
+            toast.className = "show " + type;
+
+            // Remove query param da URL
+            const url = new URL(window.location);
+            url.searchParams.delete("notice");
+            window.history.replaceState({}, document.title, url.toString());
+
+            // Esconde depois de 3 segundos
+            setTimeout(() => {
+                toast.className = toast.className.replace("show", "");
+            }, 3000);
+        }
+    });
+    </script>
 </body>
 </html>
