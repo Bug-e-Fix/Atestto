@@ -9,6 +9,7 @@ __pycache__/
 .txt
 .key
 .env
+
 # Ignorar pastas temporárias e caches
 *.log
 *.tmp
