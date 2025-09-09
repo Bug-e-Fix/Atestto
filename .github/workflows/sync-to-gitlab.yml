@@ -3,22 +3,28 @@ name: Sync to GitLab
 on:
   push:
     branches:
-      - main   # branch que você quer sincronizar
+      - main
 
 jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      # Faz o checkout de todo o código com histórico completo
-      - name: Checkout código
+      - name: Checkout completo do código
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # garante todo o histórico
 
-      # Configura o usuário e faz push para o GitLab
-      - name: Push para GitLab
+      - name: Configurar Git
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
+
+      - name: Adicionar repositório remoto do GitLab
+        run: |
           git remote add gitlab https://oauth2:${{ secrets.GITLAB_TOKEN }}@gitlab.auditto.com.br/giovanna.fernandes/Atestto.git
+
+      - name: Atualizar branch main no GitLab
+        run: |
+          git fetch gitlab main
+          git merge --allow-unrelated-histories gitlab/main -m "Merge GitHub main into GitLab main"
           git push gitlab main
