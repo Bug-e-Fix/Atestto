@@ -1,7 +1,3 @@
-
- PROJETO DESCONTINUADO EM PYTHON POR FALTA DE FERRAMENTAS.
- 
- 
 🖋️ Atestto – Assinatura Digital com Simplicidade e Segurança
 
 Bem-vindo(a) ao **Atestto**!  
