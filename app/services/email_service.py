@@ -81,3 +81,5 @@ def send_reset_password_email(user) -> bool:
     except Exception as e:
         current_app.logger.exception("Erro ao enviar email de reset: %s", e)
         return False
+
+
